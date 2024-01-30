@@ -22,7 +22,21 @@ def get_scan_path_2d(image, binary_mask):
     image_draw = copy.deepcopy(image)
     horizontal = np.concatenate((image, image_draw,binary_mask), axis=1)
     cv2.imshow('hori',horizontal)
-    cv2.waitKey(0)    
+    cv2.waitKey(0)
+
+    # find contour
+
+    #create bounding box
+
+    #check dimensions of box, and decide long/short side
+
+    #end up with start- and end point, then call calculate_path() from test.py
+
+    # return scan path
+
+    return None
+
+     
 
 
         
@@ -72,6 +86,9 @@ def inference(input_source='image'):
         binary_mask = get_binary_mask(raw_image) # Extracts binary mask from input
         if np.any(binary_mask) != None:
             get_scan_path_2d(raw_image, binary_mask)
+
+            #run calculate z value from (x,y) for the return argument from get_scan_path_2d()
+            #Create ros message from it?
         else:
             print('Noisntance of belly was found')
 
