@@ -11,9 +11,8 @@ def calculate_path(start, end, obstacle, num_points):
     x_start, y_start = start
     x_end, y_end = end
     x_obs, y_obs, obs_radius = obstacle
-    gamma = 8
+    gamma = 10
 
-    
     path_x = np.linspace(x_start, x_end, num_points)
     path_y = np.linspace(y_start, y_end, num_points)
     
@@ -25,20 +24,17 @@ def calculate_path(start, end, obstacle, num_points):
 
         if dist_to_obstacle < obs_radius: # Point is inside obstacle
             #Gradient approach
-            # path_x[i] += gamma*(dist_to_perimeter/dist_to_obstacle)*math.cos(theta)
-            # path_y[i] += gamma*(dist_to_perimeter/dist_to_obstacle)*math.sin(theta)
+            path_x[i] += gamma*(dist_to_perimeter/dist_to_obstacle)*math.cos(theta)
+            path_y[i] += gamma*(dist_to_perimeter/dist_to_obstacle)*math.sin(theta)
 
             #Follow outline:
-            path_x[i] += dist_to_perimeter*math.cos(theta)
-            path_y[i] += dist_to_perimeter*math.sin(theta)
-
-
-
+            # path_x[i] += dist_to_perimeter*math.cos(theta)
+            # path_y[i] += dist_to_perimeter*math.sin(theta)
 
         else:
             pass
-    coord_list = [i for i in zip(path_x, path_y)]
-    return path_x, path_y, coord_list
+
+    return path_x, path_y
 
 
 
@@ -57,12 +53,12 @@ def plot_path(start, end, obstacle, path_x, path_y):
     plt.show()
 
 def main():
-    start_point = (50, 50)
-    end_point = (700, 400)
-    obstacle = (370, 200, 80)  # (x, y, radius)
-    num_points = 100
+    start_point = (100, 350)
+    end_point = (700, 250)
+    obstacle = (400, 260, 80)  # (x, y, radius)
+    num_points = 500
     
-    path_x, path_y, _ = calculate_path(start_point, end_point, obstacle, num_points)
+    path_x, path_y = calculate_path(start_point, end_point, obstacle, num_points)
     plot_path(start_point, end_point, obstacle, path_x, path_y)
 
 if __name__ == "__main__":
