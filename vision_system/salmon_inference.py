@@ -19,13 +19,25 @@ path_to_input = '/home/daniel/catkin_ws/src/ur3_project/vision_system/input_imag
 
 
 def get_scan_path_2d(image, binary_mask):
+
+    binary_mask = cv2.cvtColor(binary_mask, cv2.COLOR_BGR2GRAY)
+    # cv2.imshow('binaryyyy_mask',binary_mask)
+    # binary_mask, _ = cv2.threshold(binary_mask, 127,255,0)
+
     image_draw = copy.deepcopy(image)
-    horizontal = np.concatenate((image, image_draw,binary_mask), axis=1)
-    cv2.imshow('hori',horizontal)
-    cv2.waitKey(0)
+    #horizontal = np.concatenate((image, image_draw,binary_mask), axis=1)
+    #cv2.imshow('bonary_mask',binary_mask)
+  
 
     # find contour
-
+    contours, _ = cv2.findContours(binary_mask,cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
+    rect = cv2.minAreaRect(contours[0])
+    box = cv2.boxPoints(rect)                    
+    box = np.int0(box)
+    cv2.drawContours(image_draw,[box],0,(0,0,255),2)        # uncomment to generate images for documentation
+    cv2.imshow("bbox", image_draw)                          # uncomment to generate images for documentation
+    
+    cv2.waitKey(0)
     #create bounding box
 
     #check dimensions of box, and decide long/short side
