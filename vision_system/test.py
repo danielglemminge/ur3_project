@@ -27,23 +27,23 @@ def calculate_path(start, end, obstacle, num_points):
 
         if dist_to_obstacle < obs_radius: # Point is inside obstacle
             #Gradient approach
-            path_x[i] += gamma*(dist_to_perimeter/dist_to_obstacle)*math.cos(theta)
-            path_y[i] += gamma*(dist_to_perimeter/dist_to_obstacle)*math.sin(theta)
+            # path_x[i] += gamma*(dist_to_perimeter/dist_to_obstacle)*math.cos(theta)
+            # path_y[i] += gamma*(dist_to_perimeter/dist_to_obstacle)*math.sin(theta)
 
             #Gradient approach with momentum along original path
 
-            # Fx_obstacle = (gamma/(dist_to_obstacle/obs_radius)**2)*math.cos(theta)
-            # Fy_obstacle = (gamma/(dist_to_obstacle/obs_radius)**2)*math.sin(theta)
+            Fx_obstacle = (gamma/(dist_to_obstacle/obs_radius)**2)*math.cos(theta)
+            Fy_obstacle = (gamma/(dist_to_obstacle/obs_radius)**2)*math.sin(theta)
 
-            # path_x[i] += (Fx_obstacle)
-            # path_y[i] += (Fy_obstacle)
+            path_x[i] += (Fx_obstacle)
+            path_y[i] += (Fy_obstacle)
 
-            # momentum = 0
-            # Fx_momentum = momentum*math.cos(path_angle)
-            # Fy_momentum = momentum*math.sin(path_angle)
+            momentum = 0
+            Fx_momentum = momentum*math.cos(path_angle)
+            Fy_momentum = momentum*math.sin(path_angle)
 
-            # path_x[i] += (Fx_momentum)
-            # path_y[i] += (Fy_momentum)
+            path_x[i] += (Fx_momentum)
+            path_y[i] += (Fy_momentum)
 
                         
 
