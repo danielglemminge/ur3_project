@@ -3,7 +3,7 @@ import matplotlib.pyplot as plt
 import copy
 
 class PotentialFieldPlanner:
-    def __init__(self, start, goal, obstacles, k_att=1, k_rep=1, rep_radius=40.0, step_size=1, max_iters=10):
+    def __init__(self, start, goal, obstacles, k_att=1, k_rep=1, rep_radius=5.0, step_size=1, max_iters=10):
         self.start = start
         self.goal = goal
         self.obstacles = obstacles
@@ -14,9 +14,9 @@ class PotentialFieldPlanner:
         self.max_iters = max_iters
 
     def attractive_potential(self, position):
-        theta_position_goal = np.arctan2(goal[1]-position[1], goal[0]-position[0])
-        attractive_potential_x = (0.5 * self.k_att * np.linalg.norm(position - self.goal))*np.cos(theta_position_goal)
-        attractive_potential_y = (0.5 * self.k_att * np.linalg.norm(position - self.goal))*np.sin(theta_position_goal)
+        theta_goal = np.arctan2(goal[1]-position[1], goal[0]-position[0])
+        attractive_potential_x = (0.5 * self.k_att * np.linalg.norm(position - self.goal))*np.cos(theta_goal)
+        attractive_potential_y = (0.5 * self.k_att * np.linalg.norm(position - self.goal))*np.sin(theta_goal)
         return attractive_potential_x, attractive_potential_y
 
     def repulsive_potential(self, position):
@@ -41,12 +41,10 @@ class PotentialFieldPlanner:
             total_force_x = repulsive_force_x + attractive_force_x
             total_force_y = repulsive_force_y + attractive_force_y
 
-            
-
             next_position_x = current_position[0] + self.step_size * total_force_x
             next_position_y = current_position[1] + self.step_size * total_force_y
             
-            next_position = np.array([current_position[0]+next_position_x, current_position[1]+next_position_y])
+            next_position = np.array([next_position_x, next_position_y])
 
 
             if np.linalg.norm(next_position - self.goal) < self.step_size:
@@ -61,8 +59,8 @@ class PotentialFieldPlanner:
 # Example usage:
 start = np.array([180, 180])
 goal = np.array([480, 360])
-obstacles = [np.array([370, 280])]
-
+# obstacles = [np.array([370, 280])]
+obstacles = []
 
 planner = PotentialFieldPlanner(start, goal, obstacles)
 path = planner.plan()
