@@ -1,8 +1,0 @@
-import numpy as np
-
-position= (180, 180)
-
-repulsive_force = np.zeros_like(position)
-print(repulsive_force)
-repulsive_force += 5
-print(repulsive_force)

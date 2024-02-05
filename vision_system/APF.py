@@ -61,6 +61,7 @@ class PotentialFieldPlanner:
 
         return np.array(path)
 
+        
 # Example usage:
 start = np.array([180, 180])
 goal = np.array([480, 360])
