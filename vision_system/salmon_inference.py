@@ -4,7 +4,7 @@ import numpy as np
 import os
 import copy
 import random
-#from APF import PotentialFieldPlanner
+from APF import PotentialFieldPlanner
 
 """
 Starting variables
@@ -24,6 +24,39 @@ def limit_pt(pt, width, height):
     pt[0] = min(max(0,pt[0]), width)
     pt[1] = min(max(0,pt[1]), height)
     return pt
+
+#########################################################################
+
+def get_binary_mask(image):
+    
+    """
+    global path, filename, path_test, path_results
+    print("Trying to get binary mask...")
+    outputs = predictor(im)         
+
+    if (0 in outputs['instances'].pred_classes.tolist()):
+        # Get the mask from output and convert to a mat array such that its compatible with opencv.            
+        mask_array = outputs['instances'].pred_masks.to('cpu').numpy() 
+        num_instances = mask_array.shape[0]
+        mask_array = np.moveaxis(mask_array, 0, -1)
+        mask_array_instance = []
+        binary_mask = np.zeros_like(im) # Create a black image
+        for i in range(num_instances):
+            mask_array_instance.append(mask_array[:, :, i:(i+1)])   
+            binary_mask = np.where(mask_array_instance[i] == True, 255, binary_mask)    # Convert only those pixels that are 1 to 255.        
+        # cv2.imshow("binary_mask", binary_mask)       # uncomment to generate images for documentation
+        # cv2.imwrite(path_results + "binary_mask_" + filename, binary_mask)       # uncomment to generate images for documentation
+        return binary_mask        
+    else:
+        print("No instances of belly.")
+        return None
+    """
+    
+    print('Trying to get binary mask')
+    binary_mask = cv2.imread(path_to_input+'binary_mask.png')
+    binary_mask = cv2.cvtColor(binary_mask, cv2.COLOR_BGR2GRAY) # Binary transformation
+
+    return binary_mask
 
 
 def get_scan_start_stop(im, binary_mask):
@@ -189,6 +222,8 @@ def get_scan_start_stop(im, binary_mask):
     else:
         print("In get_scan_start_stop: Invalid scan points")
         return img, [None,None], [None,None]
+    
+#########################################################################
 
 
 def get_black_spot_mask(image):
@@ -207,7 +242,7 @@ def get_black_spot_coord(im, black_spot_mask):
   
     # Find contour
     contours, _ = cv2.findContours(black_spot_mask,cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
-    print('Number of spots: ', len(contours[0]))
+    print('Number of spots: ', len(contours))
     black_spot_list = []
     for contour in contours:
         (x,y),radius = cv2.minEnclosingCircle(contour)
@@ -218,42 +253,8 @@ def get_black_spot_coord(im, black_spot_mask):
     
     return img_draw, black_spot_list
 
-        
 
-def get_binary_mask(image):
-    
-    """
-    global path, filename, path_test, path_results
-    print("Trying to get binary mask...")
-    outputs = predictor(im)         
-
-    if (0 in outputs['instances'].pred_classes.tolist()):
-        # Get the mask from output and convert to a mat array such that its compatible with opencv.            
-        mask_array = outputs['instances'].pred_masks.to('cpu').numpy() 
-        num_instances = mask_array.shape[0]
-        mask_array = np.moveaxis(mask_array, 0, -1)
-        mask_array_instance = []
-        binary_mask = np.zeros_like(im) # Create a black image
-        for i in range(num_instances):
-            mask_array_instance.append(mask_array[:, :, i:(i+1)])   
-            binary_mask = np.where(mask_array_instance[i] == True, 255, binary_mask)    # Convert only those pixels that are 1 to 255.        
-        # cv2.imshow("binary_mask", binary_mask)       # uncomment to generate images for documentation
-        # cv2.imwrite(path_results + "binary_mask_" + filename, binary_mask)       # uncomment to generate images for documentation
-        return binary_mask        
-    else:
-        print("No instances of belly.")
-        return None
-    """
-    
-    print('Trying to get binary mask')
-    binary_mask = cv2.imread(path_to_input+'binary_mask.png')
-    binary_mask = cv2.cvtColor(binary_mask, cv2.COLOR_BGR2GRAY) # Binary transformation
-
-    return binary_mask
-
-
-
-
+#########################################################################
 
 def inference(input_source='image'):
     # Top level function
@@ -269,15 +270,29 @@ def inference(input_source='image'):
 
         if np.any(binary_mask) != None:
 
-            im_start_stop, start, stop = get_scan_start_stop(raw_image, binary_mask)
+            im_start_stop, pt0, pt1 = get_scan_start_stop(raw_image, binary_mask)
+
 
             if np.any(get_black_spot_mask) != None:
                 im_black_spot, black_spot_list = get_black_spot_coord(raw_image, black_spot_mask)
 
                 # cv2.imshow("image-start-stop", im_start_stop) # Display one pic at the time
                 # cv2.imshow("image-black-spot", im_black_spot) # Display one pic at the time
-                horizontal = np.concatenate((im_start_stop, im_black_spot), axis=1)
+
+                # artificial_obstacle=[np.array([380,280, 20])] # The testing images does not have a path that interfere with the black spot from the binary mask
+                # cv2.circle(im_black_spot, (artificial_obstacle[0][:2]), artificial_obstacle[0][2], (0,0,255),2)
+                # planner = PotentialFieldPlanner(start=pt0, goal=pt1, obstacles=artificial_obstacle)
+
+                planner = PotentialFieldPlanner(start=pt0, goal=pt1, obstacles=black_spot_list)
+                path = planner.plan()
+                
+                for coord in path:
+                    cv2.circle(im_black_spot, (int(coord[0]), int(coord[1])), 2, (0,255,0),1)
+
+                
+                horizontal = np.concatenate((im_black_spot, im_start_stop), axis=1)
                 cv2.imshow('start stop, and black spot', horizontal)
+
                 
                 while True:
                     key = cv2.waitKey(1)

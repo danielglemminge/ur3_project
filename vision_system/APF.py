@@ -14,7 +14,7 @@ class PotentialFieldPlanner:
         self.max_iters = max_iters
 
     def attractive_potential(self, position):
-        theta_goal = np.arctan2(goal[1]-position[1], goal[0]-position[0])
+        theta_goal = np.arctan2(self.goal[1]-position[1], self.goal[0]-position[0])
         # attractive_potential_x = (0.5 * self.k_att * np.linalg.norm(position - self.goal))*np.cos(theta_goal)
         # attractive_potential_y = (0.5 * self.k_att * np.linalg.norm(position - self.goal))*np.sin(theta_goal)
         attractive_potential_x = self.k_att * (np.linalg.norm(self.start - self.goal)/10)*np.cos(theta_goal)
@@ -36,7 +36,9 @@ class PotentialFieldPlanner:
 
     def plan(self):
         current_position = self.start
-        path = [current_position]
+
+        path = []
+        path.append(current_position)
 
         for _ in range(self.max_iters):
 
@@ -49,7 +51,7 @@ class PotentialFieldPlanner:
             next_position_x = current_position[0] + self.step_size * total_force_x
             next_position_y = current_position[1] + self.step_size * total_force_y
             
-            next_position = np.array([next_position_x, next_position_y])
+            next_position = np.array([int(next_position_x), int(next_position_y)])
 
 
             if np.linalg.norm(next_position - self.goal) < self.step_size:
@@ -62,25 +64,28 @@ class PotentialFieldPlanner:
         return np.array(path)
 
         
-# Example usage:
-start = np.array([180, 180])
-goal = np.array([480, 360])
-#obstacles = [np.array([370, 280,20])]
-obstacles = [np.array([250, 225, 20]), np.array([350, 280, 20])]
-#obstacles = [np.array([300, 230,20]), np.array([300, 250, 20]), np.array([300, 270, 20])] # wall
+if __name__=="__main__":
+        
+    # Example usage:
+    start = np.array([180, 180])
+    goal = np.array([480, 360])
+    #obstacles = [np.array([370, 280,20])]
+    obstacles = [np.array([250, 225, 20]), np.array([350, 280, 20])]
+    #obstacles = [np.array([300, 230,20]), np.array([300, 250, 20]), np.array([300, 270, 20])] # wall
 
-planner = PotentialFieldPlanner(start, goal, obstacles)
-path = planner.plan()
+    planner = PotentialFieldPlanner(start, goal, obstacles)
+    path = planner.plan()
 
-plt.plot(path[:, 0], path[:, 1], '-o', label='Planned Path')
-plt.plot(start[0], start[1], 'go', label='Start')
-plt.plot(goal[0], goal[1], 'ro', label='Goal')
-for obstacle in obstacles:
-    plt.plot(obstacle[0], obstacle[1], 'ks', label='Obstacle')
-    plt.gca().add_patch(patches.Circle(obstacle[:2],obstacle[2], edgecolor='g', facecolor='none'))
-plt.legend()
-plt.xlabel('X')
-plt.ylabel('Y')
-plt.title('Artificial Potential Field Path Planning')
-plt.grid(True)
-plt.show()
+
+    plt.plot(path[:, 0], path[:, 1], '-o', label='Planned Path')
+    plt.plot(start[0], start[1], 'go', label='Start')
+    plt.plot(goal[0], goal[1], 'ro', label='Goal')
+    for obstacle in obstacles:
+        plt.plot(obstacle[0], obstacle[1], 'ks', label='Obstacle')
+        plt.gca().add_patch(patches.Circle(obstacle[:2],obstacle[2], edgecolor='g', facecolor='none'))
+    plt.legend()
+    plt.xlabel('X')
+    plt.ylabel('Y')
+    plt.title('Artificial Potential Field Path Planning')
+    plt.grid(True)
+    plt.show()
