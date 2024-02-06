@@ -4,7 +4,7 @@ import copy
 from matplotlib import patches
 
 class PotentialFieldPlanner:
-    def __init__(self, start, goal, obstacles, k_att=0.4, k_rep=4, step_size=0.5, max_iters=50):
+    def __init__(self, start, goal, obstacles, k_att=0.04, k_rep=4, step_size=0.5, max_iters=50):
         self.start = start
         self.goal = goal
         self.obstacles = obstacles
@@ -15,10 +15,8 @@ class PotentialFieldPlanner:
 
     def attractive_potential(self, position):
         theta_goal = np.arctan2(self.goal[1]-position[1], self.goal[0]-position[0])
-        # attractive_potential_x = (0.5 * self.k_att * np.linalg.norm(position - self.goal))*np.cos(theta_goal)
-        # attractive_potential_y = (0.5 * self.k_att * np.linalg.norm(position - self.goal))*np.sin(theta_goal)
-        attractive_potential_x = self.k_att * (np.linalg.norm(self.start - self.goal)/10)*np.cos(theta_goal)
-        attractive_potential_y = self.k_att * (np.linalg.norm(self.start - self.goal)/10)*np.sin(theta_goal)
+        attractive_potential_x = self.k_att * (np.linalg.norm(self.start - self.goal))*np.cos(theta_goal)
+        attractive_potential_y = self.k_att * (np.linalg.norm(self.start - self.goal))*np.sin(theta_goal)
         
         return attractive_potential_x, attractive_potential_y
 

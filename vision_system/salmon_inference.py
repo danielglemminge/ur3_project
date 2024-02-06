@@ -5,6 +5,7 @@ import os
 import copy
 import random
 from APF import PotentialFieldPlanner
+from APF2 import PotentialFieldPlanner2
 
 """
 Starting variables
@@ -67,9 +68,9 @@ def get_scan_start_stop(im, binary_mask):
     img_draw = copy.deepcopy(im)
 
     height,width = binary_mask.shape[:2]
-        
+    
     #horizontal = np.concatenate((image, image_draw,binary_mask), axis=1)
-    #cv2.imshow('bonary_mask',binary_mask)
+    # cv2.imshow('bonary_mask',binary_mask)
   
 
     # find contour
@@ -112,7 +113,7 @@ def get_scan_start_stop(im, binary_mask):
     box = cv2.boxPoints(rect)                    
     box = np.int0(box)
     # print("Box coordinates ([[x1,y1]...[x4,y4]]) = ", box)
-    # cv2.drawContours(img_draw,[box],0,(0,0,255),2)        # uncomment to generate images for documentation
+    cv2.drawContours(img,[box],0,(0,0,255),2)        # uncomment to generate images for documentation
     # cv2.imshow("bbox", img_draw)                          # uncomment to generate images for documentation
     # cv2.imwrite(path_results + "bbox_" + filename, img_draw)      # uncomment to generate images for documentation
 
@@ -141,7 +142,7 @@ def get_scan_start_stop(im, binary_mask):
     x = belly_line[0][0] - belly_line[1][0]
     y = belly_line[0][1] - belly_line[1][1]
     theta = np.arctan2(y,x)
-    print("Theta(rads) = ", theta," Theta(deg) = ", theta * 180/np.pi)
+    #print("Theta(rads) = ", theta," Theta(deg) = ", theta * 180/np.pi)
 
     # theta = abs(theta)
 
@@ -289,7 +290,7 @@ def inference(input_source='image'):
 
                 artificial_obstacle=[np.array([380,280, 20])] # The testing images does not have a path that interfere with the black spot from the binary mask
                 cv2.circle(im_black_spot, (artificial_obstacle[0][:2]), artificial_obstacle[0][2], (0,0,255),2)
-                planner = PotentialFieldPlanner(start=pt0, goal=pt1, obstacles=artificial_obstacle)
+                planner = PotentialFieldPlanner2(start=pt0, goal=pt1, obstacles=artificial_obstacle)
 
                 # planner = PotentialFieldPlanner(start=pt0, goal=pt1, obstacles=black_spot_list)
                 path = planner.plan()
@@ -331,12 +332,12 @@ inference()
 """
 To Do/Notes:
 - Resize images, maybe after path calculations for higher precision?
-- 
+- Add option for video and realsense feed
+- Test repulsive force in only y direction.
 
 Notes:
 - If image should be flipped, remember to flip raw_image and both masks in the separate functions!
-
-
+- APF has no centerline allignment, while APF2 has one,
 
 
 """
