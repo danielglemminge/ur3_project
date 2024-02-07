@@ -6,6 +6,7 @@ import copy
 import random
 from APF import PotentialFieldPlanner
 from APF2 import PotentialFieldPlanner2
+from APF3 import PotentialFieldPlanner3
 
 """
 Starting variables
@@ -56,7 +57,7 @@ def get_binary_mask(image):
     print('Trying to get binary mask')
     binary_mask = cv2.imread(path_to_input+'binary_mask.png')
     #--------------------------------------------------------------------------------------------------------
-    # binary_mask = cv2.rotate(binary_mask, cv2.ROTATE_180) #Flip! Must flip raw_image and black spot mask too!
+    binary_mask = cv2.rotate(binary_mask, cv2.ROTATE_180) #Flip! Must flip raw_image and black spot mask too!
     #--------------------------------------------------------------------------------------------------------
     binary_mask = cv2.cvtColor(binary_mask, cv2.COLOR_BGR2GRAY) # Binary transformation
 
@@ -237,7 +238,7 @@ def get_black_spot_mask(image):
     """
     black_spot_mask = cv2.imread(path_to_input+'1st_melanin_spot.png')
     #--------------------------------------------------------------------------------------------------------
-    # black_spot_mask=cv2.rotate(black_spot_mask, cv2.ROTATE_180) #Flip! Must flip raw_image and other mask too!
+    black_spot_mask=cv2.rotate(black_spot_mask, cv2.ROTATE_180) #Flip! Must flip raw_image and other mask too!
     #--------------------------------------------------------------------------------------------------------
     black_spot_mask = cv2.cvtColor(black_spot_mask, cv2.COLOR_BGR2GRAY) # Binary transformation
 
@@ -270,8 +271,8 @@ def inference(input_source='image'):
         # Read the image input for further processing
         raw_image = cv2.imread(path_to_input + 'salmon_conveyor.png')
         #--------------------------------------------------------------------------------------------------------
-        #Flip! Must flip belly mask and black spot mask too!
-        # raw_image = cv2.rotate(raw_image, cv2.ROTATE_180)
+        # Flip! Must flip belly mask and black spot mask too!
+        raw_image = cv2.rotate(raw_image, cv2.ROTATE_180)
         #--------------------------------------------------------------------------------------------------------
 
         binary_mask = get_binary_mask(raw_image) # Extracts binary mask from input
@@ -288,7 +289,7 @@ def inference(input_source='image'):
                 # cv2.imshow("image-start-stop", im_start_stop) # Display one pic at the time
                 # cv2.imshow("image-black-spot", im_black_spot) # Display one pic at the time
 
-                artificial_obstacle=[np.array([380,280, 20])] # The testing images does not have a path that interfere with the black spot from the binary mask
+                artificial_obstacle=[np.array([380,170, 20])] # The testing images does not have a path that interfere with the black spot from the binary mask
                 cv2.circle(im_black_spot, (artificial_obstacle[0][:2]), artificial_obstacle[0][2], (0,0,255),2)
                 planner = PotentialFieldPlanner2(start=pt0, goal=pt1, obstacles=artificial_obstacle)
 
@@ -334,6 +335,9 @@ To Do/Notes:
 - Resize images, maybe after path calculations for higher precision?
 - Add option for video and realsense feed
 - Test repulsive force in only y direction.
+- Check out bezier curves
+- Negative repulsive force once the fish is past the obstacle 
+- Check out magnet north and south pole approach (two circles)
 
 Notes:
 - If image should be flipped, remember to flip raw_image and both masks in the separate functions!

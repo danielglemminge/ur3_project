@@ -11,7 +11,7 @@ def calculate_path(start, end, obstacle, num_points):
     x_start, y_start = start
     x_end, y_end = end
     x_obs, y_obs, obs_radius = obstacle
-    gamma = 2
+    gamma = 5
     
 
     path_x = np.linspace(x_start, x_end, num_points)
@@ -32,24 +32,24 @@ def calculate_path(start, end, obstacle, num_points):
 
             #Gradient approach with momentum along original path
 
-            Fx_obstacle = (gamma/(dist_to_obstacle/obs_radius)**2)*math.cos(theta)
-            Fy_obstacle = (gamma/(dist_to_obstacle/obs_radius)**2)*math.sin(theta)
+            # Fx_obstacle = (gamma/(dist_to_obstacle/obs_radius)**2)*math.cos(theta)
+            # Fy_obstacle = (gamma/(dist_to_obstacle/obs_radius)**2)*math.sin(theta)
 
-            path_x[i] += (Fx_obstacle)
-            path_y[i] += (Fy_obstacle)
+            # path_x[i] += (Fx_obstacle)
+            # path_y[i] += (Fy_obstacle)
 
-            momentum = 0
-            Fx_momentum = momentum*math.cos(path_angle)
-            Fy_momentum = momentum*math.sin(path_angle)
+            # momentum = 0
+            # Fx_momentum = momentum*math.cos(path_angle)
+            # Fy_momentum = momentum*math.sin(path_angle)
 
-            path_x[i] += (Fx_momentum)
-            path_y[i] += (Fy_momentum)
+            # path_x[i] += (Fx_momentum)
+            # path_y[i] += (Fy_momentum)
 
                         
 
             #Follow outline:
-            # path_x[i] += dist_to_perimeter*math.cos(theta)
-            # path_y[i] += dist_to_perimeter*math.sin(theta)
+            path_x[i] += dist_to_perimeter*math.cos(theta)
+            path_y[i] += dist_to_perimeter*math.sin(theta)
 
         else:
             pass

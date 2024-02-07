@@ -4,14 +4,13 @@ import copy
 from matplotlib import patches
 from numpy.linalg import norm
 
-class PotentialFieldPlanner2:
-    def __init__(self, start, goal, obstacles, k_att=0.04, k_rep=4, k_centerline=1, step_size=0.5, max_iters=50):
+class PotentialFieldPlanner3:
+    def __init__(self, start, goal, obstacles, k_att=0.04, k_rep=4, step_size=0.5, max_iters=50):
         self.start = start
         self.goal = goal
         self.obstacles = obstacles
         self.k_att = k_att
         self.k_rep = k_rep
-        self.k_centerline = k_centerline
         self.step_size = step_size
         self.max_iters = max_iters
 
@@ -23,23 +22,7 @@ class PotentialFieldPlanner2:
         
         return attractive_goal_x, attractive_goal_y
     
-    def attractive_centerline(self, position):
-        phi_centerline = np.arctan2(self.goal[1]-position[1], self.goal[0]-position[0])
-        normal_distance_centerline = norm(np.cross(self.goal - self.start, self.start - position))/norm(self.goal - self.start)
-        # attractive_centerline_x = 0
-        # attractive_centerline_y = 0
-        for obstacle in self.obstacles:
-            radius = obstacle[2]
-            dist_to_obstacle = np.linalg.norm(position - obstacle[:2])
-            if dist_to_obstacle > 1.2*radius: # Is the current point outside the obstacle?
-                attractive_centerline_x = self.k_centerline * normal_distance_centerline * np.sin(phi_centerline) 
-                attractive_centerline_y = self.k_centerline * normal_distance_centerline * np.cos(phi_centerline)
-            else: # current point is inside obstacle, so centerline attraction is ignored
-                attractive_centerline_x = 0
-                attractive_centerline_y = 0
-                
-        return attractive_centerline_x, attractive_centerline_y
-
+    
     def repulsive_obstacle(self, position):
         repulsive_obstacle_x = 0
         repulsive_obstacle_y = 0
@@ -61,10 +44,10 @@ class PotentialFieldPlanner2:
 
             attractive_goal_x, attractive_goal_y = self.attractive_goal(current_position)
             repulsive_obstacle_x, repulsive_obstacle_y = self.repulsive_obstacle(current_position)
-            attractive_centerline_x, attractive_centerline_y = self.attractive_centerline(current_position) 
 
-            total_force_x = attractive_goal_x + attractive_centerline_x - repulsive_obstacle_x
-            total_force_y = attractive_goal_y + attractive_centerline_y - repulsive_obstacle_y
+
+            total_force_x = attractive_goal_x - repulsive_obstacle_x
+            total_force_y = attractive_goal_y - repulsive_obstacle_y
 
             next_position_x = current_position[0] + self.step_size * total_force_x
             next_position_y = current_position[1] + self.step_size * total_force_y
@@ -90,15 +73,13 @@ if __name__=="__main__":
     obstacles = [np.array([250, 225, 20]), np.array([350, 280, 20])]
     #obstacles = [np.array([300, 230,20]), np.array([300, 250, 20]), np.array([300, 270, 20])] # wall
 
-    planner = PotentialFieldPlanner2(start, goal, obstacles)
+    planner = PotentialFieldPlanner3(start, goal, obstacles)
     path = planner.plan()
 
 
     plt.plot(path[:, 0], path[:, 1], '-o', label='Planned Path')
     plt.plot(start[0], start[1], 'go', label='Start')
     plt.plot(goal[0], goal[1], 'ro', label='Goal')
-    straight_path = np.linspace(start, goal,200)
-    plt.plot([start[0], goal[0]], [start[1], goal[1]], 'b--', label='Straight Line')
     for obstacle in obstacles:
         plt.plot(obstacle[0], obstacle[1], 'ks', label='Obstacle')
         plt.gca().add_patch(patches.Circle(obstacle[:2],obstacle[2], edgecolor='g', facecolor='none'))
