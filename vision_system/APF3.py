@@ -80,6 +80,7 @@ if __name__=="__main__":
     plt.plot(path[:, 0], path[:, 1], '-o', label='Planned Path')
     plt.plot(start[0], start[1], 'go', label='Start')
     plt.plot(goal[0], goal[1], 'ro', label='Goal')
+    plt.plot([start[0], goal[0]], [start[1], goal[1]], 'b--', label='Straight Line')
     for obstacle in obstacles:
         plt.plot(obstacle[0], obstacle[1], 'ks', label='Obstacle')
         plt.gca().add_patch(patches.Circle(obstacle[:2],obstacle[2], edgecolor='g', facecolor='none'))
