@@ -11,7 +11,7 @@ from APF3 import PotentialFieldPlanner3
 """
 Starting variables
 """
-path_to_input = '/home/daniel/catkin_ws/src/ur3_project/vision_system/input_images/'
+path_to_input = '/home/daniel/catkin_ws/src/ur3_project/vision_system/images/input_images/'
 
 # def imshow_many(image_list, dimension=(2,1)):
 #     if dimension == (2,1):
