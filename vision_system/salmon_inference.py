@@ -11,7 +11,7 @@ from APF3 import PotentialFieldPlanner3
 """
 Starting variables
 """
-path_to_input = '/home/daniel/catkin_ws/src/ur3_project/vision_system/input_images/'
+path_to_input = '/home/daniel/catkin_ws/src/ur3_project/vision_system/images_michael/'
 
 # def imshow_many(image_list, dimension=(2,1)):
 #     if dimension == (2,1):
@@ -55,12 +55,13 @@ def get_binary_mask(image):
     """
     
     print('Trying to get binary mask')
-    binary_mask = cv2.imread(path_to_input+'binary_mask.png')
+    binary_mask = cv2.imread(path_to_input+'binary_mask_f2.jpg')
     #--------------------------------------------------------------------------------------------------------
-    binary_mask = cv2.rotate(binary_mask, cv2.ROTATE_180) #Flip! Must flip raw_image and black spot mask too!
+    # binary_mask = cv2.rotate(binary_mask, cv2.ROTATE_180) #Flip! Must flip raw_image and black spot mask too!
     #--------------------------------------------------------------------------------------------------------
-    binary_mask = cv2.cvtColor(binary_mask, cv2.COLOR_BGR2GRAY) # Binary transformation
-
+    
+    imgray = cv2.cvtColor(binary_mask, cv2.COLOR_BGR2GRAY) 
+    ret,binary_mask = cv2.threshold(imgray, 120,255,cv2.THRESH_BINARY) # Binary transformation
     return binary_mask
 
 
@@ -69,6 +70,7 @@ def get_scan_start_stop(im, binary_mask):
     img_draw = copy.deepcopy(im)
 
     height,width = binary_mask.shape[:2]
+    
     
     #horizontal = np.concatenate((image, image_draw,binary_mask), axis=1)
     # cv2.imshow('bonary_mask',binary_mask)
@@ -114,7 +116,7 @@ def get_scan_start_stop(im, binary_mask):
     box = cv2.boxPoints(rect)                    
     box = np.int0(box)
     # print("Box coordinates ([[x1,y1]...[x4,y4]]) = ", box)
-    #cv2.drawContours(img,[box],0,(0,0,255),2)        # uncomment to generate images for documentation
+    # cv2.drawContours(img_draw,[box],0,(0,0,255),2)        # uncomment to generate images for documentation
     # cv2.imshow("bbox", img_draw)                          # uncomment to generate images for documentation
     # cv2.imwrite(path_results + "bbox_" + filename, img_draw)      # uncomment to generate images for documentation
 
@@ -236,9 +238,9 @@ def get_black_spot_mask(image):
     Placeholder for machine learning to extract binary mask for black spot
     Can also alter get_binary_mask() to extract more classes
     """
-    black_spot_mask = cv2.imread(path_to_input+'1st_melanin_spot.png')
+    black_spot_mask = cv2.imread(path_to_input+'binary_mask_black_spot_f2.jpg')
     #--------------------------------------------------------------------------------------------------------
-    black_spot_mask=cv2.rotate(black_spot_mask, cv2.ROTATE_180) #Flip! Must flip raw_image and other mask too!
+    #black_spot_mask=cv2.rotate(black_spot_mask, cv2.ROTATE_180) #Flip! Must flip raw_image and other mask too!
     #--------------------------------------------------------------------------------------------------------
     black_spot_mask = cv2.cvtColor(black_spot_mask, cv2.COLOR_BGR2GRAY) # Binary transformation
 
@@ -246,8 +248,8 @@ def get_black_spot_mask(image):
 
 def get_black_spot_coord(im, black_spot_mask):
     img_draw = copy.deepcopy(im)
-    height,width = black_spot_mask.shape[:2]
-  
+    
+
     # Find contour
     contours, _ = cv2.findContours(black_spot_mask,cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
     print('Number of spots: ', len(contours))
@@ -269,10 +271,11 @@ def inference(input_source='image'):
 
     if input_source == 'image':
         # Read the image input for further processing
-        raw_image = cv2.imread(path_to_input + 'salmon_conveyor.png')
+        raw_image = cv2.imread(path_to_input + 'input_f2.jpg')
+        raw_image = cv2.resize(raw_image, (0, 0), fx = 0.5, fy = 0.5)
         #--------------------------------------------------------------------------------------------------------
         # Flip! Must flip belly mask and black spot mask too!
-        raw_image = cv2.rotate(raw_image, cv2.ROTATE_180)
+        # raw_image = cv2.rotate(raw_image, cv2.ROTATE_180)
         #--------------------------------------------------------------------------------------------------------
 
         binary_mask = get_binary_mask(raw_image) # Extracts binary mask from input
@@ -289,11 +292,11 @@ def inference(input_source='image'):
                 # cv2.imshow("image-start-stop", im_start_stop) # Display one pic at the time
                 # cv2.imshow("image-black-spot", im_black_spot) # Display one pic at the time
 
-                artificial_obstacle=[np.array([420,190, 20])] # The testing images does not have a path that interfere with the black spot from the binary mask
-                cv2.circle(im_start_stop, (artificial_obstacle[0][:2]), artificial_obstacle[0][2], (0,0,255),2)
-                planner = PotentialFieldPlanner(start=pt0, goal=pt1, obstacles=artificial_obstacle)
+                # artificial_obstacle=[np.array([420,190, 20])] # The testing images does not have a path that interfere with the black spot from the binary mask
+                # cv2.circle(im_start_stop, (artificial_obstacle[0][:2]), artificial_obstacle[0][2], (0,0,255),2)
+                # planner = PotentialFieldPlanner(start=pt0, goal=pt1, obstacles=artificial_obstacle)
 
-                # planner = PotentialFieldPlanner(start=pt0, goal=pt1, obstacles=black_spot_list)
+                planner = PotentialFieldPlanner(start=pt0, goal=pt1, obstacles=black_spot_list)
                 path = planner.plan()
                 
                 for coord in path:
