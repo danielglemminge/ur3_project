@@ -291,7 +291,7 @@ def inference(input_source='image'):
 
                 artificial_obstacle=[np.array([380,170, 20])] # The testing images does not have a path that interfere with the black spot from the binary mask
                 cv2.circle(im_black_spot, (artificial_obstacle[0][:2]), artificial_obstacle[0][2], (0,0,255),2)
-                planner = PotentialFieldPlanner2(start=pt0, goal=pt1, obstacles=artificial_obstacle)
+                planner = PotentialFieldPlanner(start=pt0, goal=pt1, obstacles=artificial_obstacle)
 
                 # planner = PotentialFieldPlanner(start=pt0, goal=pt1, obstacles=black_spot_list)
                 path = planner.plan()
@@ -331,8 +331,7 @@ inference()
 
 
 """
-To Do/Notes:
-- Resize images, maybe after path calculations for higher precision?
+To Do:
 - Add option for video and realsense feed
 - Test repulsive force in only y direction.
 - Check out bezier curves
