@@ -11,7 +11,7 @@ from APF3 import PotentialFieldPlanner3
 """
 Starting variables
 """
-path_to_input = '/home/daniel/catkin_ws/src/ur3_project/vision_system/images/input_images/'
+path_to_input = '/home/daniel/catkin_ws/src/ur3_project/vision_system/input_images/'
 
 # def imshow_many(image_list, dimension=(2,1)):
 #     if dimension == (2,1):
@@ -114,7 +114,7 @@ def get_scan_start_stop(im, binary_mask):
     box = cv2.boxPoints(rect)                    
     box = np.int0(box)
     # print("Box coordinates ([[x1,y1]...[x4,y4]]) = ", box)
-    cv2.drawContours(img,[box],0,(0,0,255),2)        # uncomment to generate images for documentation
+    #cv2.drawContours(img,[box],0,(0,0,255),2)        # uncomment to generate images for documentation
     # cv2.imshow("bbox", img_draw)                          # uncomment to generate images for documentation
     # cv2.imwrite(path_results + "bbox_" + filename, img_draw)      # uncomment to generate images for documentation
 
@@ -289,19 +289,21 @@ def inference(input_source='image'):
                 # cv2.imshow("image-start-stop", im_start_stop) # Display one pic at the time
                 # cv2.imshow("image-black-spot", im_black_spot) # Display one pic at the time
 
-                artificial_obstacle=[np.array([380,170, 20])] # The testing images does not have a path that interfere with the black spot from the binary mask
-                cv2.circle(im_black_spot, (artificial_obstacle[0][:2]), artificial_obstacle[0][2], (0,0,255),2)
+                artificial_obstacle=[np.array([420,190, 20])] # The testing images does not have a path that interfere with the black spot from the binary mask
+                cv2.circle(im_start_stop, (artificial_obstacle[0][:2]), artificial_obstacle[0][2], (0,0,255),2)
                 planner = PotentialFieldPlanner(start=pt0, goal=pt1, obstacles=artificial_obstacle)
 
                 # planner = PotentialFieldPlanner(start=pt0, goal=pt1, obstacles=black_spot_list)
                 path = planner.plan()
                 
                 for coord in path:
-                    cv2.circle(im_black_spot, (int(coord[0]), int(coord[1])), 2, (0,255,0),1)
+                    cv2.circle(im_start_stop, (int(coord[0]), int(coord[1])), 2, (0,255,0),1)
 
                 
-                horizontal = np.concatenate((im_black_spot, im_start_stop), axis=1)
-                cv2.imshow('start stop, and black spot', horizontal)
+                #horizontal = np.concatenate((im_black_spot, im_start_stop), axis=1)
+                
+                cv2.imshow('im_start_stop', im_start_stop)
+                #cv2.imwrite('/home/daniel/catkin_ws/src/ur3_project/documentation_images/scan_line/APF_scan_simple2.png', im_start_stop)
 
                 
                 while True:
