@@ -26,16 +26,19 @@ class PotentialFieldPlanner2:
         self.max_iters = max_iters
 
     def attractive_goal(self, position):
-        theta_goal = np.arctan2(self.goal[1]-position[1], self.goal[0]-position[0]) # Angle between current position and goal
+        theta_goal = np.arctan2(self.goal[1]-self.start[1], self.goal[0]-self.start[0]) # Angle between start position and goal
         attractive_goal_x = self.k_att * np.cos(theta_goal)
         attractive_goal_y = self.k_att * np.sin(theta_goal)
         
         return attractive_goal_x, attractive_goal_y
     
     def attractive_centerline(self, position):
+        
         ref_point = closest_on_line(self.start, self.goal, position)
         phi_refpoint = np.arctan2(ref_point[1]-position[1], ref_point[0]-position[0])
         d_refpoint = np.linalg.norm(position - ref_point)
+        """
+        print('d refpoint',d_refpoint)
         #phi_centerline = np.arctan2(self.goal[1]-self.start[1], self.goal[0]-self.start[0])
         #normal_distance_centerline = norm(np.cross(self.goal - self.start, self.start - position))/norm(self.goal - self.start)
         
@@ -56,7 +59,29 @@ class PotentialFieldPlanner2:
         else:
             attractive_centerline_x = d_refpoint * np.sin(phi_refpoint) 
             attractive_centerline_y = d_refpoint * np.cos(phi_refpoint)
+        
+        """
+        ref_point = closest_on_line(self.start, self.goal, position)
+        phi_refpoint = np.arctan2(ref_point[1]-position[1], ref_point[0]-position[0])
+        d_refpoint = np.linalg.norm(position - ref_point)
+
+        if len(self.obstacles) > 0:
+
+            for obstacle in self.obstacles:
+                dist_to_obstacle =np.linalg.norm(position - obstacle[:2])
+                obstacle_radius = obstacle[2]
+                if dist_to_obstacle > obstacle_radius:
+                    attractive_centerline_x = d_refpoint*np.sin(phi_refpoint)
+                    attractive_centerline_y = d_refpoint*np.cos(phi_refpoint)
+                else:
+                    attractive_centerline_x = 0
+                    attractive_centerline_y = 0
+        else: 
+            attractive_centerline_x = d_refpoint*np.sin(phi_refpoint)
+            attractive_centerline_y = d_refpoint*np.cos(phi_refpoint)
+        
         return attractive_centerline_x, attractive_centerline_y
+    
 
     def repulsive_obstacle(self, position):
         repulsive_obstacle_x = 0
@@ -83,8 +108,7 @@ class PotentialFieldPlanner2:
 
             attractive_goal_x, attractive_goal_y = self.attractive_goal(current_position)
             repulsive_obstacle_x, repulsive_obstacle_y = self.repulsive_obstacle(current_position)
-            attractive_centerline_x, attractive_centerline_y = self.attractive_centerline(current_position) 
-            print('x: ',attractive_centerline_x,'y: ',attractive_centerline_y)
+            attractive_centerline_x, attractive_centerline_y = self.attractive_centerline(current_position)
 
 
             total_force_x = attractive_goal_x + attractive_centerline_x - repulsive_obstacle_x
