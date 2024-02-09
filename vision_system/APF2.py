@@ -84,25 +84,23 @@ class PotentialFieldPlanner2:
     
 
     def repulsive_obstacle(self, position):
-        if len(obstacles)>=1:    
+        if len(self.obstacles)>=1:    
             repulsive_obstacle_x = 0
             repulsive_obstacle_y = 0
-            print(repulsive_obstacle_x)
             for obstacle in self.obstacles:
                 radius = obstacle[2]
-                distance = np.linalg.norm(position - obstacle[:2]) 
+                distance = np.linalg.norm(position - obstacle[:2])
+                theta_obstacle = np.arctan2(obstacle[1]-position[1], obstacle[0]-position[0])
                 if distance < radius:
-                    theta_obstacle = np.arctan2(obstacle[1]-position[1], obstacle[0]-position[0])
                     #repulsive_obstacle_x += self.k_rep * (radius**2/distance**2)*np.cos(theta_obstacle)
                     #repulsive_obstacle_y += self.k_rep * (radius**2/distance**2)*np.sin(theta_obstacle)
                     repulsive_force = 0.5*self.k_rep*((1/distance)-(1/radius))
-                    print(repulsive_force)
                     repulsive_obstacle_x += repulsive_force *np.cos(theta_obstacle)
                     repulsive_obstacle_y += repulsive_force *np.sin(theta_obstacle)
                    
                 else:
-                    repulsive_obstacle_x = 0
-                    repulsive_obstacle_y = 0
+                    repulsive_obstacle_x += 0
+                    repulsive_obstacle_y += 0
         else:
             repulsive_obstacle_x = 0
             repulsive_obstacle_y = 0
