@@ -15,7 +15,7 @@ def closest_on_line(p1, p2, p3):
         return [x1+a*dx, y1+a*dy]
 
 class PotentialFieldPlanner2:
-    def __init__(self, start, goal, obstacles, k_att=2, k_rep=1, k_centerline=0.005, step_size=4, max_iters=50):
+    def __init__(self, start, goal, obstacles, k_att=2, k_rep=300, k_centerline=0.005, step_size=1, max_iters=500):
         self.start = start
         self.goal = goal
         self.obstacles = obstacles
@@ -71,8 +71,8 @@ class PotentialFieldPlanner2:
                 dist_to_obstacle =np.linalg.norm(position - obstacle[:2])
                 obstacle_radius = obstacle[2]
                 if dist_to_obstacle > obstacle_radius:
-                    attractive_centerline_x = d_refpoint*np.sin(phi_refpoint)
-                    attractive_centerline_y = d_refpoint*np.cos(phi_refpoint)
+                    attractive_centerline_x = 0.1*d_refpoint*np.cos(phi_refpoint)
+                    attractive_centerline_y = 0.1*d_refpoint*np.sin(phi_refpoint)
                 else:
                     attractive_centerline_x = 0
                     attractive_centerline_y = 0
@@ -84,16 +84,25 @@ class PotentialFieldPlanner2:
     
 
     def repulsive_obstacle(self, position):
-        repulsive_obstacle_x = 0
-        repulsive_obstacle_y = 0
         if len(obstacles)>=1:    
+            repulsive_obstacle_x = 0
+            repulsive_obstacle_y = 0
+            print(repulsive_obstacle_x)
             for obstacle in self.obstacles:
                 radius = obstacle[2]
                 distance = np.linalg.norm(position - obstacle[:2]) 
                 if distance < radius:
                     theta_obstacle = np.arctan2(obstacle[1]-position[1], obstacle[0]-position[0])
-                    repulsive_obstacle_x += self.k_rep * (radius**2/distance**2)*np.cos(theta_obstacle)
-                    repulsive_obstacle_y += self.k_rep * (radius**2/distance**2)*np.sin(theta_obstacle)
+                    #repulsive_obstacle_x += self.k_rep * (radius**2/distance**2)*np.cos(theta_obstacle)
+                    #repulsive_obstacle_y += self.k_rep * (radius**2/distance**2)*np.sin(theta_obstacle)
+                    repulsive_force = 0.5*self.k_rep*((1/distance)-(1/radius))
+                    print(repulsive_force)
+                    repulsive_obstacle_x += repulsive_force *np.cos(theta_obstacle)
+                    repulsive_obstacle_y += repulsive_force *np.sin(theta_obstacle)
+                   
+                else:
+                    repulsive_obstacle_x = 0
+                    repulsive_obstacle_y = 0
         else:
             repulsive_obstacle_x = 0
             repulsive_obstacle_y = 0
@@ -109,7 +118,7 @@ class PotentialFieldPlanner2:
             attractive_goal_x, attractive_goal_y = self.attractive_goal(current_position)
             repulsive_obstacle_x, repulsive_obstacle_y = self.repulsive_obstacle(current_position)
             attractive_centerline_x, attractive_centerline_y = self.attractive_centerline(current_position)
-
+            
 
             total_force_x = attractive_goal_x + attractive_centerline_x - repulsive_obstacle_x
             total_force_y = attractive_goal_y + attractive_centerline_y - repulsive_obstacle_y
@@ -133,8 +142,8 @@ if __name__=="__main__":
         
     # Example usage:
     start = np.array([180, 180])
-    goal = np.array([480, 360])
-    # obstacles = [np.array([370, 280,20])]
+    goal = np.array([480, 350])
+    #obstacles = [np.array([370, 280,20])]
     obstacles = [np.array([250, 225, 20]), np.array([350, 280, 20])]
     # obstacles = [] 
 
