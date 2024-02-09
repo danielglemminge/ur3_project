@@ -3,6 +3,7 @@ import matplotlib.pyplot as plt
 import copy
 from matplotlib import patches
 from numpy.linalg import norm
+import math
 
 
 def closest_on_line(p1, p2, p3):
@@ -15,7 +16,7 @@ def closest_on_line(p1, p2, p3):
         return [x1+a*dx, y1+a*dy]
 
 class PotentialFieldPlanner2:
-    def __init__(self, start, goal, obstacles, k_att=2, k_rep=300, k_centerline=0.005, step_size=1, max_iters=500):
+    def __init__(self, start, goal, obstacles, k_att=2, k_rep=300, k_centerline=0.005, step_size=2, max_iters=300):
         self.start = start
         self.goal = goal
         self.obstacles = obstacles
@@ -25,54 +26,27 @@ class PotentialFieldPlanner2:
         self.step_size = step_size
         self.max_iters = max_iters
 
-    def attractive_goal(self, position):
+
+    def attractive_goal(self):
         theta_goal = np.arctan2(self.goal[1]-self.start[1], self.goal[0]-self.start[0]) # Angle between start position and goal
         attractive_goal_x = self.k_att * np.cos(theta_goal)
         attractive_goal_y = self.k_att * np.sin(theta_goal)
         
         return attractive_goal_x, attractive_goal_y
     
+    
     def attractive_centerline(self, position):
-        
-        ref_point = closest_on_line(self.start, self.goal, position)
-        phi_refpoint = np.arctan2(ref_point[1]-position[1], ref_point[0]-position[0])
-        d_refpoint = np.linalg.norm(position - ref_point)
-        """
-        print('d refpoint',d_refpoint)
-        #phi_centerline = np.arctan2(self.goal[1]-self.start[1], self.goal[0]-self.start[0])
-        #normal_distance_centerline = norm(np.cross(self.goal - self.start, self.start - position))/norm(self.goal - self.start)
-        
-        attractive_centerline_x =  0
-        attractive_centerline_y = 0
-        if len(obstacles) > 0:
-                
-            for obstacle in self.obstacles:
-                radius = obstacle[2]
-                dist_to_obstacle = np.linalg.norm(position - obstacle[:2])
-                if dist_to_obstacle > 1.2*radius: # Is the current point outside the obstacle?
-                    attractive_centerline_x = d_refpoint * np.sin(phi_refpoint) 
-                    attractive_centerline_y = d_refpoint * np.cos(phi_refpoint)
-                else: # current point is inside obstacle, so centerline attraction is ignored
-                    attractive_centerline_x = 0
-                    attractive_centerline_y = 0
-                    break
-        else:
-            attractive_centerline_x = d_refpoint * np.sin(phi_refpoint) 
-            attractive_centerline_y = d_refpoint * np.cos(phi_refpoint)
-        
-        """
         ref_point = closest_on_line(self.start, self.goal, position)
         phi_refpoint = np.arctan2(ref_point[1]-position[1], ref_point[0]-position[0])
         d_refpoint = np.linalg.norm(position - ref_point)
 
         if len(self.obstacles) > 0:
-
             for obstacle in self.obstacles:
                 dist_to_obstacle =np.linalg.norm(position - obstacle[:2])
                 obstacle_radius = obstacle[2]
                 if dist_to_obstacle > obstacle_radius:
-                    attractive_centerline_x = 0.1*d_refpoint*np.cos(phi_refpoint)
-                    attractive_centerline_y = 0.1*d_refpoint*np.sin(phi_refpoint)
+                    attractive_centerline_x = (0.1*d_refpoint)**2 * (np.cos(phi_refpoint))
+                    attractive_centerline_y = (0.1*d_refpoint)**2 * (np.sin(phi_refpoint))
                 else:
                     attractive_centerline_x = 0
                     attractive_centerline_y = 0
@@ -113,7 +87,7 @@ class PotentialFieldPlanner2:
 
         for _ in range(self.max_iters):
 
-            attractive_goal_x, attractive_goal_y = self.attractive_goal(current_position)
+            attractive_goal_x, attractive_goal_y = self.attractive_goal()
             repulsive_obstacle_x, repulsive_obstacle_y = self.repulsive_obstacle(current_position)
             attractive_centerline_x, attractive_centerline_y = self.attractive_centerline(current_position)
             
@@ -134,6 +108,42 @@ class PotentialFieldPlanner2:
             current_position = next_position
 
         return np.array(path)
+    
+
+    def plotTerrain(self):
+        x = np.arange(self.start[0], self.goal[0],1)
+        y = np.arange(self.start[0], self.goal[0],1)
+
+        X, Y = np.meshgrid(x,y)
+
+        total_force_x = np.zeros_like(X)
+        total_force_y = np.zeros_like(Y)
+
+        for i in range(len(x)):
+            for j in range(len(y)):
+                attractive_goal_x, attractive_goal_y = self.attractive_goal()
+                attractive_centerline_x, attractive_centerline_y = self.attractive_centerline(np.array([i,j]))
+                repulsive_obstacle_x, repulsive_obstacle_y = self.repulsive_obstacle([i,j])
+                
+                total_force_x[i][j] = math.trunc(attractive_goal_x) + math.trunc(attractive_centerline_x) - math.trunc(repulsive_obstacle_x)
+                print(total_force_x)
+                total_force_y[i][j] = attractive_goal_y + attractive_centerline_y - repulsive_obstacle_y        
+        
+        fig, ax = plt.subplots(figsize = (abs(self.goal[0]-self.start[0]), abs(self.goal[1]-self.start[1])))
+        ax.quiver(X, Y, delx, dely)
+        ax.add_patch(plt.Circle(self.start, 2, color = 'y'))
+        ax.add_patch(plt.Circle(self.goal, 2, color = 'm'))
+        for obstacle in obstacles:
+            plt.plot(obstacle[0], obstacle[1], 'ks', label='Obstacle')
+            plt.gca().add_patch(patches.Circle(obstacle[:2],obstacle[2], edgecolor='g', facecolor='none'))
+        ax.set_title('Combined Potential when Goal and Obstacle are different ')
+        plt.show()
+
+
+
+        
+
+        pass
 
         
 if __name__=="__main__":
@@ -142,7 +152,7 @@ if __name__=="__main__":
     start = np.array([180, 180])
     goal = np.array([480, 350])
     #obstacles = [np.array([370, 280,20])]
-    obstacles = [np.array([250, 225, 20]), np.array([350, 280, 20])]
+    obstacles = [np.array([250, 225, 20]), np.array([400, 280, 40])]
     # obstacles = [] 
 
     planner = PotentialFieldPlanner2(start, goal, obstacles)
@@ -162,7 +172,11 @@ if __name__=="__main__":
     plt.ylabel('Y')
     plt.title('Artificial Potential Field Path Planning 2.0')
     plt.grid(True)
+    plt.xlim(165, 500)
+    plt.ylim(180, 360)
     plt.show()
+
+    planner.plotTerrain()
 
 
 """
