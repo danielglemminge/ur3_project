@@ -16,7 +16,7 @@ def closest_on_line(p1, p2, p3): # Returns a point[x,y] on the line from p1 to p
         return [x1+a*dx, y1+a*dy]
 
 class PotentialFieldPlanner2:
-    def __init__(self, start, goal, obstacles, k_att=2, k_rep=1000, k_centerline=1, step_size=1, max_iters=300):
+    def __init__(self, start, goal, obstacles, k_att=2, k_rep=15000, k_centerline=1, step_size=1, max_iters=300):
         self.start = start
         self.goal = goal
         self.obstacles = obstacles
@@ -72,7 +72,7 @@ class PotentialFieldPlanner2:
                 theta_obstacle = np.arctan2(obstacle[1]-position[1], obstacle[0]-position[0])
                 if distance <= radius:
                     repulsive_potential += 0.5*self.k_rep*((1/distance)-(1/radius))**2
-                    repulsive_force = -self.k_rep*((1/distance)-(1/(radius)))*(1/(distance**2))
+                    repulsive_force = -(self.k_rep/distance**2)*((1/distance)-(1/(radius)))
                     repulsive_force_x += round(repulsive_force * np.cos(theta_obstacle),5)
                     repulsive_force_y += round(repulsive_force * np.sin(theta_obstacle),5)
                     print(repulsive_force)
