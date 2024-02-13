@@ -18,7 +18,7 @@ def closest_on_line(p1, p2, p3): # Returns a point[x,y] on the line from p1 to p
         return [x1+a*dx, y1+a*dy]
 
 class PotentialFieldPlanner2:
-    def __init__(self, start, goal, obstacles, k_att=2, k_rep=15000, k_centerline=1.1, step_size=2, max_iters=300):
+    def __init__(self, start, goal, obstacles, k_att=3, k_rep=15000, k_centerline=0.5, step_size=1, max_iters=300):
         self.start = start
         self.goal = goal
         self.obstacles = obstacles
@@ -29,13 +29,11 @@ class PotentialFieldPlanner2:
         self.max_iters = max_iters
 
 
-    def attractive_goal(self, position):
+    def attractive_goal(self):
         theta_goal = np.arctan2(self.goal[1]-self.start[1], self.goal[0]-self.start[0]) # Angle between start position and goal
-        d_goal = np.linalg.norm(position - self.goal)
-        exponent = 1
-        goal_potential = round((self.k_att/exponent*(d_goal)**exponent),5)
-        force_goal_x = round(self.k_att*(d_goal)**(exponent-1) * (np.cos(theta_goal)),5)
-        force_goal_y = round(self.k_att*(d_goal)**(exponent-1) * (np.sin(theta_goal)),5)
+        goal_potential = 0
+        force_goal_x = round(self.k_att * (np.cos(theta_goal)),5)
+        force_goal_y = round(self.k_att * (np.sin(theta_goal)),5)
         
         return force_goal_x, force_goal_y, goal_potential
     
@@ -50,7 +48,7 @@ class PotentialFieldPlanner2:
                 dist_to_obstacle = np.linalg.norm(position - obstacle[:2])
                 obstacle_radius = obstacle[2]
                 if dist_to_obstacle > obstacle_radius:
-                    exponent = 1
+                    exponent = 2
                     centerline_potential = round((self.k_c/exponent*(d_refpoint)**exponent),5) # 0.5*K_c*d**2
                     force_centerline_x = round(self.k_c*(d_refpoint)**(exponent-1) * (np.cos(phi_refpoint)),5)
                     force_centerline_y = round(self.k_c*(d_refpoint)**(exponent-1) * (np.sin(phi_refpoint)),5)
@@ -68,6 +66,7 @@ class PotentialFieldPlanner2:
 
     def repulsive_obstacle(self, position):
         # http://www.diag.uniroma1.it/oriolo/amr/slides/MotionPlanning3_Slides.pdf
+        
         if len(self.obstacles)>=1:    
             repulsive_force_x = 0
             repulsive_force_y = 0
@@ -85,7 +84,7 @@ class PotentialFieldPlanner2:
                         repulsive_force_x += round(repulsive_force * np.cos(theta_obstacle),5)
                         repulsive_force_y += round(repulsive_force * np.sin(theta_obstacle),5)
                     else:
-                        repulsive_potential += 42 # cutoff to avoid infinitely scaling function.
+                        repulsive_potential += 200 # cutoff to avoid infinitely scaling function.
                 else:
                     repulsive_potential += 0
                     repulsive_force_x += 0
@@ -94,7 +93,6 @@ class PotentialFieldPlanner2:
             repulsive_potential = 0
             repulsive_force_x = 0
             repulsive_force_y = 0
-            print(repulsive_force_x)
         return repulsive_force_x, repulsive_force_y, repulsive_potential
 
     def plan(self):
@@ -104,7 +102,7 @@ class PotentialFieldPlanner2:
 
         for _ in range(self.max_iters):
 
-            attractive_goal_x, attractive_goal_y, _ = self.attractive_goal(current_position)
+            attractive_goal_x, attractive_goal_y, _ = self.attractive_goal()
             repulsive_obstacle_x, repulsive_obstacle_y, _ = self.repulsive_obstacle(current_position)
             attractive_centerline_x, attractive_centerline_y, _ = self.attractive_centerline(current_position)
             
@@ -128,8 +126,8 @@ class PotentialFieldPlanner2:
     
 
     def plotTerrain(self):
-        x = np.arange(self.start[0], self.goal[0],1)
-        y = np.arange(self.start[0], self.goal[0],1)
+        x = np.arange(0, self.goal[0],1)
+        y = np.arange(0, self.goal[0],1)
 
         X, Y = np.meshgrid(x,y)
 
@@ -138,10 +136,10 @@ class PotentialFieldPlanner2:
         for i in range(0, len(x), 1):
             for j in range(0, len(y), 1):
                 current_position = np.array([i,j])
-                _, _, goal_potential = self.attractive_goal(current_position)
+                _, _, goal_potential = self.attractive_goal()
                 _,_, centerline_potential = self.attractive_centerline(current_position)
                 _, _, obstacle_potential = self.repulsive_obstacle(current_position)
-                Z[i,j] = goal_potential + centerline_potential + obstacle_potential 
+                Z[i,j] = 0*goal_potential + centerline_potential + obstacle_potential 
                     
         fig = plt.figure()
         ax = fig.add_subplot(111, projection='3d')
@@ -188,7 +186,7 @@ if __name__=="__main__":
     plt.ylim(180, 360)
     plt.show()
 
-    # planner.plotTerrain()
+    planner.plotTerrain()
 
 
 """
