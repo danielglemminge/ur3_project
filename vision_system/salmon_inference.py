@@ -296,7 +296,7 @@ def inference(input_source='image'):
                 # cv2.circle(im_start_stop, (artificial_obstacle[0][:2]), artificial_obstacle[0][2], (0,0,255),2)
                 # planner = PotentialFieldPlanner(start=pt0, goal=pt1, obstacles=artificial_obstacle)
 
-                planner = PotentialFieldPlanner(start=pt0, goal=pt1, obstacles=black_spot_list)
+                planner = PotentialFieldPlanner3(start=pt0, goal=pt1, obstacles=black_spot_list)
                 path = planner.plan()
                 
                 for coord in path:

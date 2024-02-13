@@ -17,8 +17,10 @@ def closest_on_line(p1, p2, p3): # Returns a point[x,y] on the line from p1 to p
         a = (dy*(y3-y1)+dx*(x3-x1))/det
         return [x1+a*dx, y1+a*dy]
 
-class PotentialFieldPlanner2:
-    def __init__(self, start, goal, obstacles, k_att=3, k_rep=15000, k_centerline=0.5, step_size=1, max_iters=300):
+# Working params for planner:
+# k_att=3, k_rep=40000, k_centerline=0.3, step_size=1, max_iters=300
+class PotentialFieldPlanner3:
+    def __init__(self, start, goal, obstacles, k_att=3, k_rep=40000, k_centerline=0.3, step_size=1, max_iters=300):
         self.start = start
         self.goal = goal
         self.obstacles = obstacles
@@ -42,13 +44,12 @@ class PotentialFieldPlanner2:
         ref_point = closest_on_line(self.start, self.goal, position)
         phi_refpoint = np.arctan2(ref_point[1]-position[1], ref_point[0]-position[0])
         d_refpoint = np.linalg.norm(position - ref_point)
-
+        exponent = 2
         if len(self.obstacles) > 0:
             for obstacle in self.obstacles:
                 dist_to_obstacle = np.linalg.norm(position - obstacle[:2])
                 obstacle_radius = obstacle[2]
                 if dist_to_obstacle > obstacle_radius:
-                    exponent = 2
                     centerline_potential = round((self.k_c/exponent*(d_refpoint)**exponent),5) # 0.5*K_c*d**2
                     force_centerline_x = round(self.k_c*(d_refpoint)**(exponent-1) * (np.cos(phi_refpoint)),5)
                     force_centerline_y = round(self.k_c*(d_refpoint)**(exponent-1) * (np.sin(phi_refpoint)),5)
@@ -57,9 +58,9 @@ class PotentialFieldPlanner2:
                     force_centerline_x = 0
                     force_centerline_y = 0
         else: 
-            centerline_potential = round((0.5*self.k_c*(d_refpoint)**2),5) # 0.5*K_c*d**2
-            force_centerline_x = round(self.k_c**d_refpoint * (np.cps(phi_refpoint)),5)
-            force_centerline_y = round(self.k_c**d_refpoint * (np.sin(phi_refpoint)),5)
+            centerline_potential = round((self.k_c/exponent*(d_refpoint)**exponent),5) # 0.5*K_c*d**2
+            force_centerline_x = round(self.k_c*(d_refpoint)**(exponent-1) * (np.cos(phi_refpoint)),5)
+            force_centerline_y = round(self.k_c*(d_refpoint)**(exponent-1) * (np.sin(phi_refpoint)),5)
         
         return force_centerline_x, force_centerline_y, centerline_potential
     
@@ -76,7 +77,7 @@ class PotentialFieldPlanner2:
                 distance = np.linalg.norm(position - obstacle[:2])
                 theta_obstacle = np.arctan2(obstacle[1]-position[1], obstacle[0]-position[0])
                 if distance <= radius:
-                    if distance > 10:
+                    if distance > 0:
                             
                         exponent = 2 # if exponent=2->gain should be around 15000, if exponent=1, gain should be around 150
                         repulsive_potential += (self.k_rep/exponent)*((1/distance)-(1/radius))**exponent
@@ -84,7 +85,8 @@ class PotentialFieldPlanner2:
                         repulsive_force_x += round(repulsive_force * np.cos(theta_obstacle),5)
                         repulsive_force_y += round(repulsive_force * np.sin(theta_obstacle),5)
                     else:
-                        repulsive_potential += 200 # cutoff to avoid infinitely scaling function.
+                        pass
+                        #repulsive_potential += 200 # cutoff to avoid infinitely scaling function.
                 else:
                     repulsive_potential += 0
                     repulsive_force_x += 0
@@ -139,7 +141,9 @@ class PotentialFieldPlanner2:
                 _, _, goal_potential = self.attractive_goal()
                 _,_, centerline_potential = self.attractive_centerline(current_position)
                 _, _, obstacle_potential = self.repulsive_obstacle(current_position)
-                Z[i,j] = 0*goal_potential + centerline_potential + obstacle_potential 
+                
+                
+                Z[i,j] = goal_potential + centerline_potential + obstacle_potential 
                     
         fig = plt.figure()
         ax = fig.add_subplot(111, projection='3d')
@@ -165,7 +169,7 @@ if __name__=="__main__":
     obstacles = [np.array([250, 225, 20]), np.array([400, 300, 20])]
     # obstacles = [] 
 
-    planner = PotentialFieldPlanner2(start, goal, obstacles)
+    planner = PotentialFieldPlanner3(start, goal, obstacles)
     path = planner.plan()
 
 
@@ -186,7 +190,7 @@ if __name__=="__main__":
     plt.ylim(180, 360)
     plt.show()
 
-    planner.plotTerrain()
+    #planner.plotTerrain()
 
 
 """
