@@ -6,8 +6,8 @@ from numpy.linalg import norm
 import math
 
 
-def closest_on_line(p1, p2, p3):
-        x1, y1 = p1
+def closest_on_line(p1, p2, p3): # Returns a point[x,y] on the line from p1 to p2, that is closest to p3
+        x1, y1 = p1 
         x2, y2 = p2
         x3, y3 = p3
         dx, dy = x2-x1, y2-y1
@@ -29,8 +29,8 @@ class PotentialFieldPlanner2:
 
     def attractive_goal(self):
         theta_goal = np.arctan2(self.goal[1]-self.start[1], self.goal[0]-self.start[0]) # Angle between start position and goal
-        attractive_goal_x = self.k_att * np.cos(theta_goal)
-        attractive_goal_y = self.k_att * np.sin(theta_goal)
+        attractive_goal_x = round(self.k_att * np.cos(theta_goal),5)
+        attractive_goal_y = round(self.k_att * np.sin(theta_goal),5)
         
         return attractive_goal_x, attractive_goal_y
     
@@ -42,17 +42,17 @@ class PotentialFieldPlanner2:
 
         if len(self.obstacles) > 0:
             for obstacle in self.obstacles:
-                dist_to_obstacle =np.linalg.norm(position - obstacle[:2])
+                dist_to_obstacle = np.linalg.norm(position - obstacle[:2])
                 obstacle_radius = obstacle[2]
                 if dist_to_obstacle > obstacle_radius:
-                    attractive_centerline_x = (0.1*d_refpoint)**2 * (np.cos(phi_refpoint))
-                    attractive_centerline_y = (0.1*d_refpoint)**2 * (np.sin(phi_refpoint))
+                    attractive_centerline_x = round((0.1*d_refpoint)**2 * (np.cos(phi_refpoint)),5)
+                    attractive_centerline_y = round((0.1*d_refpoint)**2 * (np.sin(phi_refpoint)),5)
                 else:
                     attractive_centerline_x = 0
                     attractive_centerline_y = 0
         else: 
-            attractive_centerline_x = d_refpoint*np.sin(phi_refpoint)
-            attractive_centerline_y = d_refpoint*np.cos(phi_refpoint)
+            attractive_centerline_x = round((0.1*d_refpoint)**2 * (np.cos(phi_refpoint)),5)
+            attractive_centerline_y = round((0.1*d_refpoint)**2 * (np.sin(phi_refpoint)),5)
         
         return attractive_centerline_x, attractive_centerline_y
     
@@ -68,9 +68,9 @@ class PotentialFieldPlanner2:
                 if distance < radius:
                     #repulsive_obstacle_x += self.k_rep * (radius**2/distance**2)*np.cos(theta_obstacle)
                     #repulsive_obstacle_y += self.k_rep * (radius**2/distance**2)*np.sin(theta_obstacle)
-                    repulsive_force = 0.5*self.k_rep*((1/distance)-(1/radius))
-                    repulsive_obstacle_x += repulsive_force *np.cos(theta_obstacle)
-                    repulsive_obstacle_y += repulsive_force *np.sin(theta_obstacle)
+                    repulsive_force = 0.5*self.k_rep*((1/(1+distance))-(1/radius))
+                    repulsive_obstacle_x += round(repulsive_force * np.cos(theta_obstacle),5)
+                    repulsive_obstacle_y += round(repulsive_force * np.sin(theta_obstacle),5)
                    
                 else:
                     repulsive_obstacle_x += 0
@@ -97,7 +97,7 @@ class PotentialFieldPlanner2:
 
             next_position_x = current_position[0] + self.step_size * total_force_x
             next_position_y = current_position[1] + self.step_size * total_force_y
-            # next_position = np.array([int(next_position_x), int(next_position_y)])
+            next_position = np.array([next_position_x, next_position_y])
             next_position = np.array([next_position_x, next_position_y]) # For precise calculations
 
             if np.linalg.norm(next_position - self.goal) < self.step_size:
@@ -119,21 +119,21 @@ class PotentialFieldPlanner2:
         total_force_x = np.zeros_like(X)
         total_force_y = np.zeros_like(Y)
 
-        for i in range(len(x)):
-            for j in range(len(y)):
+        for i in range(0, len(x), 5):
+            for j in range(0, len(y), 5):
+                print(i,j)
                 attractive_goal_x, attractive_goal_y = self.attractive_goal()
                 attractive_centerline_x, attractive_centerline_y = self.attractive_centerline(np.array([i,j]))
-                repulsive_obstacle_x, repulsive_obstacle_y = self.repulsive_obstacle([i,j])
-                
-                total_force_x[i][j] = math.trunc(attractive_goal_x) + math.trunc(attractive_centerline_x) - math.trunc(repulsive_obstacle_x)
-                print(total_force_x)
-                total_force_y[i][j] = attractive_goal_y + attractive_centerline_y - repulsive_obstacle_y        
+                repulsive_obstacle_x, repulsive_obstacle_y = self.repulsive_obstacle(np.array([i,j]))
+                #print(attractive_centerline_x, attractive_goal_x, repulsive_obstacle_x)
+                total_force_x[i][j] = attractive_goal_x + attractive_centerline_x - repulsive_obstacle_x
+                total_force_y[i][j] = attractive_goal_y + attractive_centerline_y - repulsive_obstacle_y   
         
         fig, ax = plt.subplots(figsize = (abs(self.goal[0]-self.start[0]), abs(self.goal[1]-self.start[1])))
-        ax.quiver(X, Y, delx, dely)
-        ax.add_patch(plt.Circle(self.start, 2, color = 'y'))
+        ax.quiver(X[::5], Y[::5], total_force_x[::5], total_force_y[::5])
+        ax.add_patch(plt.Circle(self.start, 2, color = 'g'))
         ax.add_patch(plt.Circle(self.goal, 2, color = 'm'))
-        for obstacle in obstacles:
+        for obstacle in self.obstacles:
             plt.plot(obstacle[0], obstacle[1], 'ks', label='Obstacle')
             plt.gca().add_patch(patches.Circle(obstacle[:2],obstacle[2], edgecolor='g', facecolor='none'))
         ax.set_title('Combined Potential when Goal and Obstacle are different ')
@@ -176,7 +176,7 @@ if __name__=="__main__":
     plt.ylim(180, 360)
     plt.show()
 
-    planner.plotTerrain()
+    #planner.plotTerrain()
 
 
 """
