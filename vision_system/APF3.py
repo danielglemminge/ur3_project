@@ -20,7 +20,7 @@ def closest_on_line(p1, p2, p3): # Returns a point[x,y] on the line from p1 to p
 # Working params for planner:
 # k_att=3, k_rep=40000, k_centerline=0.3, step_size=1, max_iters=300
 class PotentialFieldPlanner3:
-    def __init__(self, start, goal, obstacles, k_att=3, k_rep=40000, k_centerline=0.3, step_size=1, max_iters=300):
+    def __init__(self, start, goal, obstacles, k_att=3, k_rep=20000, k_centerline=0.5, step_size=0.5, goal_threshold=2, max_iters=400):
         self.start = start
         self.goal = goal
         self.obstacles = obstacles
@@ -29,6 +29,7 @@ class PotentialFieldPlanner3:
         self.k_c = k_centerline
         self.step_size = step_size
         self.max_iters = max_iters
+        self.goal_threshold = goal_threshold
 
 
     def attractive_goal(self):
@@ -117,7 +118,7 @@ class PotentialFieldPlanner3:
             next_position = np.array([next_position_x, next_position_y])
             next_position = np.array([next_position_x, next_position_y]) # For precise calculations
 
-            if np.linalg.norm(next_position - self.goal) < self.step_size:
+            if np.linalg.norm(next_position - self.goal) < self.goal_threshold:
                 path.append(self.goal)
                 break
 
@@ -163,10 +164,10 @@ class PotentialFieldPlanner3:
 if __name__=="__main__":
         
     # Example usage:
-    start = np.array([180, 180])
-    goal = np.array([480, 350])
+    start = np.array([80, 280])
+    goal = np.array([455, 435])
     #obstacles = [np.array([370, 280,20])]
-    obstacles = [np.array([250, 225, 20]), np.array([400, 300, 20])]
+    obstacles = [np.array([351,401,10]), np.array([400, 300, 20])]
     # obstacles = [] 
 
     planner = PotentialFieldPlanner3(start, goal, obstacles)
@@ -184,10 +185,10 @@ if __name__=="__main__":
     plt.legend()
     plt.xlabel('X')
     plt.ylabel('Y')
-    plt.title('Artificial Potential Field Path Planning 2.0')
+    plt.title('Artificial Potential Field Path Planning 3.0')
     plt.grid(True)
-    plt.xlim(165, 500)
-    plt.ylim(180, 360)
+    # plt.xlim(165, 500)
+    # plt.ylim(180, 360)
     plt.show()
 
     #planner.plotTerrain()
