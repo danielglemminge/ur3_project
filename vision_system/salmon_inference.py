@@ -4,8 +4,8 @@ import numpy as np
 import os
 import copy
 import random
-from APF import PotentialFieldPlanner
-from APF2 import PotentialFieldPlanner2
+from vision_system.old_ideas.APF import PotentialFieldPlanner
+from vision_system.old_ideas.APF2 import PotentialFieldPlanner2
 from APF3 import PotentialFieldPlanner3
 
 """
