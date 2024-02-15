@@ -52,6 +52,8 @@ class PotentialFieldPlanner3:
                 obstacle_radius = obstacle[2]
                 if dist_to_obstacle > obstacle_radius:
                     centerline_potential = round((self.k_c/exponent*(d_refpoint)**exponent),5) # 0.5*K_c*d**2
+                    if centerline_potential > 3:
+                        centerline_potential = 3
                     force_centerline_x = round(self.k_c*(d_refpoint)**(exponent-1) * (np.cos(phi_refpoint)),5)
                     force_centerline_y = round(self.k_c*(d_refpoint)**(exponent-1) * (np.sin(phi_refpoint)),5)
                 else:
@@ -60,6 +62,8 @@ class PotentialFieldPlanner3:
                     force_centerline_y = 0
         else: 
             centerline_potential = round((self.k_c/exponent*(d_refpoint)**exponent),5) # 0.5*K_c*d**2
+            if centerline_potential > 3:
+                        centerline_potential = 3
             force_centerline_x = round(self.k_c*(d_refpoint)**(exponent-1) * (np.cos(phi_refpoint)),5)
             force_centerline_y = round(self.k_c*(d_refpoint)**(exponent-1) * (np.sin(phi_refpoint)),5)
         
@@ -82,6 +86,8 @@ class PotentialFieldPlanner3:
                             
                         exponent = 2 # if exponent=2->gain should be around 15000, if exponent=1, gain should be around 150
                         repulsive_potential += (self.k_rep/exponent)*((1/distance)-(1/radius))**exponent
+                        if repulsive_potential > 3:
+                            repulsive_potential = 3
                         repulsive_force = -(self.k_rep/distance**2)*((1/distance)-(1/(radius)))**(exponent-1)
                         repulsive_force_x += round(repulsive_force * np.cos(theta_obstacle),5)
                         repulsive_force_y += round(repulsive_force * np.sin(theta_obstacle),5)
@@ -135,9 +141,10 @@ class PotentialFieldPlanner3:
         X, Y = np.meshgrid(x,y)
 
         Z = np.zeros_like(X)
+        
     
         for i in range(0, len(x), 1):
-            for j in range(0, len(y), 1):
+            for j in range(0,len(x), 1):
                 current_position = np.array([i,j])
                 _, _, goal_potential = self.attractive_goal()
                 _,_, centerline_potential = self.attractive_centerline(current_position)
@@ -156,6 +163,8 @@ class PotentialFieldPlanner3:
         ax.set_xlabel('X')
         ax.set_ylabel('Y')
         ax.set_zlabel('Total potential')
+        ax.set_ylim3d(0, 350)
+        ax.set_xlim3d(30, 70)
         
         plt.show()
 
@@ -164,10 +173,10 @@ class PotentialFieldPlanner3:
 if __name__=="__main__":
         
     # Example usage:
-    start = np.array([80, 280])
-    goal = np.array([455, 435])
+    start = np.array([50, 50])
+    goal = np.array([618, 349])
     #obstacles = [np.array([370, 280,20])]
-    obstacles = [np.array([351,401,10]), np.array([400, 300, 20])]
+    obstacles = [np.array([100, 48, 20]), np.array([200, 50, 10])]
     # obstacles = [] 
 
     planner = PotentialFieldPlanner3(start, goal, obstacles)
@@ -187,11 +196,9 @@ if __name__=="__main__":
     plt.ylabel('Y')
     plt.title('Artificial Potential Field Path Planning 3.0')
     plt.grid(True)
-    # plt.xlim(165, 500)
-    # plt.ylim(180, 360)
     plt.show()
 
-    #planner.plotTerrain()
+    planner.plotTerrain()
 
 
 """

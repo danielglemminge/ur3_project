@@ -211,8 +211,7 @@ def get_black_spot_coord(im, black_spot_mask):
         (x,y),radius = cv2.minEnclosingCircle(contour)
         x_y_radius = np.array([int(x), int(y), int(radius)])
         black_spot_list.append(x_y_radius)
-        color = (random.randint(0,256), random.randint(0,256), random.randint(0,256))
-        cv2.circle(img_draw, x_y_radius[:2], x_y_radius[2], color, thickness=2)
+        cv2.circle(img_draw, x_y_radius[:2], x_y_radius[2], (0,0,255), thickness=2)
     print(black_spot_list)
     
     return img_draw, black_spot_list
@@ -267,7 +266,7 @@ def inference(input_source='image'):
                 path = planner.plan()
                 
                 for coord in path:
-                    cv2.circle(im_black_spot, (int(coord[0]), int(coord[1])), 1, (0,255,0),1)
+                    cv2.circle(im_black_spot, (int(coord[0]), int(coord[1])), 0, (255,0,0),1)
 
                 
                 #horizontal = np.concatenate((im_black_spot, im_start_stop), axis=1)
