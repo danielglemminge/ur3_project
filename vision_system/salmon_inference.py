@@ -220,8 +220,8 @@ def get_black_spot_coord(im, black_spot_mask):
 
 def get_binary_masks(image):
     print('Trying to get binary mask')
-    belly_mask = cv2.imread(path_to_input+'binary_mask_f5.jpg') # Read
-    melanin_mask = cv2.imread(path_to_input+'melanin_mask_f5.jpg') # Read
+    belly_mask = cv2.imread(path_to_input+'binary_mask_f3.jpg') # Read
+    melanin_mask = cv2.imread(path_to_input+'melanin_mask_f3.jpg') # Read
 
     belly_mask = cv2.cvtColor(belly_mask, cv2.COLOR_BGR2GRAY) # Grayscale
     melanin_mask = cv2.cvtColor(melanin_mask, cv2.COLOR_BGR2GRAY) # Grayscale
@@ -240,7 +240,7 @@ def inference(input_source='image'):
 
     if input_source == 'image':
         # Read the image input for further processing
-        raw_image = cv2.imread(path_to_input + 'input_f5.jpg')
+        raw_image = cv2.imread(path_to_input + 'input_f3.jpg')
         raw_image = cv2.resize(raw_image, (0, 0), fx = 0.5, fy = 0.5)
         im_draw = copy.deepcopy(raw_image)
 

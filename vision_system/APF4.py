@@ -19,7 +19,7 @@ def closest_on_line(p1, p2, p3): # Returns a point[x,y] on the line from p1 to p
 
 # Working params for planner:
 # k_att=3, k_rep=40000, k_centerline=0.3, step_size=1, max_iters=300
-class PotentialFieldPlanner3:
+class PotentialFieldPlanner4:
     def __init__(self, start, goal, obstacles, k_att=3, k_rep=20000, k_centerline=0.5, step_size=0.5, goal_threshold=2, max_iters=400):
         self.start = start
         self.goal = goal
@@ -132,41 +132,6 @@ class PotentialFieldPlanner3:
             current_position = next_position
 
         return np.array(path)
-    
-
-    def plotTerrain(self):
-        x = np.arange(0, self.goal[0],1)
-        y = np.arange(0, self.goal[0],1)
-
-        X, Y = np.meshgrid(x,y)
-
-        Z = np.zeros_like(X)
-        
-    
-        for i in range(0, len(x), 1):
-            for j in range(0,len(x), 1):
-                current_position = np.array([i,j])
-                _, _, goal_potential = self.attractive_goal()
-                _,_, centerline_potential = self.attractive_centerline(current_position)
-                _, _, obstacle_potential = self.repulsive_obstacle(current_position)
-                
-                
-                Z[i,j] = goal_potential + centerline_potential + obstacle_potential 
-                    
-        fig = plt.figure()
-        ax = fig.add_subplot(111, projection='3d')
-        ax.plot_surface(X, Y, Z, cmap='viridis')
-        
-        
-
-        # Customize labels
-        ax.set_xlabel('X')
-        ax.set_ylabel('Y')
-        ax.set_zlabel('Total potential')
-        ax.set_ylim3d(0, 350)
-        ax.set_xlim3d(30, 70)
-        
-        plt.show()
 
 
         
@@ -179,7 +144,7 @@ if __name__=="__main__":
     obstacles = [np.array([100, 48, 20]), np.array([200, 50, 10])]
     # obstacles = [] 
 
-    planner = PotentialFieldPlanner3(start, goal, obstacles)
+    planner = PotentialFieldPlanner4(start, goal, obstacles)
     path = planner.plan()
 
 
