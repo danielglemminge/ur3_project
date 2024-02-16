@@ -4,14 +4,14 @@ import numpy as np
 import os
 import copy
 import random
-from vision_system.old_ideas.APF import PotentialFieldPlanner
-from vision_system.old_ideas.APF2 import PotentialFieldPlanner2
+# from vision_system.old_ideas.APF import PotentialFieldPlanner
+# from vision_system.old_ideas.APF2 import PotentialFieldPlanner2
 from APF3 import PotentialFieldPlanner3
 
 """
 Starting variables
 """
-path_to_input = '/home/daniel/catkin_ws/src/ur3_project/vision_system/images_michael/'
+path_to_input = '/home/daniel/catkin_ws/src/ur3_project/vision_system/'
 
 # def imshow_many(image_list, dimension=(2,1)):
 #     if dimension == (2,1):
@@ -201,27 +201,34 @@ def get_scan_start_stop(im, binary_mask):
 
 def get_black_spot_coord(im, black_spot_mask):
     img_draw = copy.deepcopy(im)
-    
 
+    #black_spot_mask = cv2.cvtColor(black_spot_mask, cv2.COLOR_BGR2GRAY) # grayscale
+    ret, thresh = cv2.threshold(black_spot_mask,120,255,cv2.THRESH_BINARY) #binary transformation
     # Find contour
-    contours, _ = cv2.findContours(black_spot_mask,cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
+    contours, _ = cv2.findContours(thresh, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
     print('Number of spots: ', len(contours))
-    black_spot_list = []
-    for contour in contours:
-        (x,y),radius = cv2.minEnclosingCircle(contour)
-        x_y_radius = np.array([int(x), int(y), int(radius)])
-        black_spot_list.append(x_y_radius)
-        cv2.circle(img_draw, x_y_radius[:2], x_y_radius[2], (0,0,255), thickness=2)
-    print(black_spot_list)
-    
-    return img_draw, black_spot_list
+    hull_list = [cv2.convexHull(contour) for contour in contours]
 
+    
+    centroid_list = []
+    for h in hull_list:
+        # calculate moments for each contour
+        M = cv2.moments(h)
+   
+        # calculate x,y coordinate of center
+        cX = int(M["m10"] / M["m00"])
+        cY = int(M["m01"] / M["m00"])
+        centroid_list.append([cX, cY])
+    
+    contour_com_zip = zip(hull_list, centroid_list) #contour and center off mass for respective contour
+
+    return img_draw, contour_com_zip
 #########################################################################
 
 def get_binary_masks(image):
     print('Trying to get binary mask')
-    belly_mask = cv2.imread(path_to_input+'binary_mask_f3.jpg') # Read
-    melanin_mask = cv2.imread(path_to_input+'melanin_mask_f3.jpg') # Read
+    belly_mask = cv2.imread(path_to_input+'images_michael/binary_mask_f5.jpg') # Read
+    melanin_mask = cv2.imread(path_to_input+'images_michael/melanin_mask_f5.jpg') # Read
 
     belly_mask = cv2.cvtColor(belly_mask, cv2.COLOR_BGR2GRAY) # Grayscale
     melanin_mask = cv2.cvtColor(melanin_mask, cv2.COLOR_BGR2GRAY) # Grayscale
@@ -240,7 +247,7 @@ def inference(input_source='image'):
 
     if input_source == 'image':
         # Read the image input for further processing
-        raw_image = cv2.imread(path_to_input + 'input_f3.jpg')
+        raw_image = cv2.imread(path_to_input + 'images_michael/input_f5.jpg')
         raw_image = cv2.resize(raw_image, (0, 0), fx = 0.5, fy = 0.5)
         im_draw = copy.deepcopy(raw_image)
 
@@ -248,30 +255,18 @@ def inference(input_source='image'):
 
         if np.any(belly_mask) != None:
 
-            im_start_stop, pt0, pt1 = get_scan_start_stop(im_draw, belly_mask)
+            im_start_stop, pt0, pt1 = get_scan_start_stop(raw_image, belly_mask)
             print('p0, p1:',pt0, pt1)
             
 
             if np.any(melanin_mask) != None:
-                im_black_spot, black_spot_list = get_black_spot_coord(im_start_stop, melanin_mask)
-                print('black spot list: ', black_spot_list)
-                # cv2.imshow("image-start-stop", im_start_stop) # Display one pic at the time
-                # cv2.imshow("image-black-spot", im_black_spot) # Display one pic at the time
-
-                # artificial_obstacle=[np.array([280, 420, 20])] # The testing images does not have a path that interfere with the black spot from the binary mask
-                # cv2.circle(im_start_stop, (artificial_obstacle[0][:2]), artificial_obstacle[0][2], (0,0,255),2)
-                # planner = PotentialFieldPlanner3(start=pt0, goal=pt1, obstacles=artificial_obstacle)
-
-                planner = PotentialFieldPlanner3(start=pt0, goal=pt1, obstacles=black_spot_list)
-                path = planner.plan()
+                im_black_spot, contour_com_zip = get_black_spot_coord(raw_image, melanin_mask)
                 
-                for coord in path:
-                    cv2.circle(im_black_spot, (int(coord[0]), int(coord[1])), 0, (255,0,0),1)
-
-                
-                #horizontal = np.concatenate((im_black_spot, im_start_stop), axis=1)
-                
-                cv2.imshow('im_draw', im_black_spot)
+                for contour_list, cm in contour_com_zip:
+                    cv2.drawContours(im_black_spot, contour_list, -1, (255,0,0), 2)
+                    cv2.circle(im_black_spot, cm, 1, (0,0,255),2)
+                                
+                cv2.imshow('im_black_spot', im_black_spot)
                 #cv2.imwrite('/home/daniel/catkin_ws/src/ur3_project/documentation_images/scan_line/APF_scan_simple2.png', im_start_stop)
 
                 

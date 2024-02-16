@@ -7,32 +7,39 @@ import cv2
 import copy
 
 convexhullinput = '/home/daniel/catkin_ws/src/ur3_project/vision_system/input_images/convex_hull_input.jpg'
+convexhullinput2 = '/home/daniel/catkin_ws/src/ur3_project/vision_system/images_michael/melanin_mask_f5.jpg'
 
 
-melanin_mask = cv2.imread(convexhullinput) # Read
-melanin_mask = cv2.resize(melanin_mask, (0, 0), fx = 0.5, fy = 0.5)
+melanin_mask = cv2.imread(convexhullinput2) # Read
+#melanin_mask = cv2.resize(melanin_mask, (0, 0), fx = 0.5, fy = 0.5)
 im_draw = copy.deepcopy(melanin_mask)
 
 melanin_mask = cv2.cvtColor(melanin_mask, cv2.COLOR_BGR2GRAY) # Grayscale
 ret,thresh = cv2.threshold(melanin_mask, 120,255,cv2.THRESH_BINARY) # Binary transformation
 cnt, _ = cv2.findContours(thresh,cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+print('Number of spots: ', len(cnt))
 hull_list = [cv2.convexHull(c) for c in cnt] # find the convexhull of the contour
 
+
+centroid_list = []
 for h in hull_list:
-   #hull = cv2.convexHull(c)
    # calculate moments for each contour
    M = cv2.moments(h)
+   
  
    # calculate x,y coordinate of center
    cX = int(M["m10"] / M["m00"])
    cY = int(M["m01"] / M["m00"])
-   print(cX,cY)
-   cv2.circle(im_draw, (cX, cY), 5, (0, 0, 255), -1)
-   cv2.putText(im_draw, "centroid", (cX - 25, cY - 25),cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 0, 255), 2)
+   centroid_list.append([cX, cY])
+   cv2.circle(im_draw, (cX,cY), 5, (0, 0, 255), -1)
+
+
+    
  
-   # display the image
-   cv2.imshow("Image", im_draw)
-   cv2.waitKey(0)
+cv2.drawContours(im_draw, hull_list, -1, (0,255,0), 2)
+# display the image
+cv2.imshow("Image", im_draw)
+cv2.waitKey(0)
 
 point= (50,50)
 
