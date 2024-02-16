@@ -3,46 +3,58 @@ import cv2 as cv
 import numpy as np
 import argparse
 import random as rng
+import cv2
+import copy
 
-rng.seed(12345)
-def thresh_callback(val):
-    threshold = val
-    # Detect edges using Canny
-    canny_output = cv.Canny(src_gray, threshold, threshold * 2)
-    # Find contours
-    _, contours, _ = cv.findContours(canny_output, cv.RETR_TREE, cv.CHAIN_APPROX_SIMPLE)
-    # Find the convex hull object for each contour
-    hull_list = []
-    for i in range(len(contours)):
-        hull = cv.convexHull(contours[i])
-        hull_list.append(hull)
-    # Draw contours + hull results
-    drawing = np.zeros((canny_output.shape[0], canny_output.shape[1], 3), dtype=np.uint8)
-    for i in range(len(contours)):
-        color = (rng.randint(0,256), rng.randint(0,256), rng.randint(0,256))
-        cv.drawContours(drawing, contours, i, color)
-        cv.drawContours(drawing, hull_list, i, color)
-    # Show in a window
-    cv.imshow('Contours', drawing)
+convexhullinput = '/home/daniel/catkin_ws/src/ur3_project/vision_system/input_images/convex_hull_input.jpg'
 
-    
-# Load source image
-parser = argparse.ArgumentParser(description='Code for Convex Hull tutorial.')
-parser.add_argument('--input', help='Path to input image.', default='stuff.jpg')
-args = parser.parse_args()
-src = cv.imread(cv.samples.findFile(args.input))
-if src is None:
-    print('Could not open or find the image:', args.input)
-    exit(0)
-# Convert image to gray and blur it
-src_gray = cv.cvtColor(src, cv.COLOR_BGR2GRAY)
-src_gray = cv.blur(src_gray, (3,3))
-# Create Window
-source_window = 'Source'
-cv.namedWindow(source_window)
-cv.imshow(source_window, src)
-max_thresh = 255
-thresh = 100 # initial threshold
-cv.createTrackbar('Canny thresh:', source_window, thresh, max_thresh, thresh_callback)
-thresh_callback(thresh)
-cv.waitKey()
+
+melanin_mask = cv2.imread(convexhullinput) # Read
+melanin_mask = cv2.resize(melanin_mask, (0, 0), fx = 0.5, fy = 0.5)
+im_draw = copy.deepcopy(melanin_mask)
+
+melanin_mask = cv2.cvtColor(melanin_mask, cv2.COLOR_BGR2GRAY) # Grayscale
+ret,thresh = cv2.threshold(melanin_mask, 120,255,cv2.THRESH_BINARY) # Binary transformation
+cnt, _ = cv2.findContours(thresh,cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+hull_list = [cv2.convexHull(c) for c in cnt] # find the convexhull of the contour
+
+for h in hull_list:
+   #hull = cv2.convexHull(c)
+   # calculate moments for each contour
+   M = cv2.moments(h)
+ 
+   # calculate x,y coordinate of center
+   cX = int(M["m10"] / M["m00"])
+   cY = int(M["m01"] / M["m00"])
+   print(cX,cY)
+   cv2.circle(im_draw, (cX, cY), 5, (0, 0, 255), -1)
+   cv2.putText(im_draw, "centroid", (cX - 25, cY - 25),cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 0, 255), 2)
+ 
+   # display the image
+   cv2.imshow("Image", im_draw)
+   cv2.waitKey(0)
+
+point= (50,50)
+
+
+result = cv2.pointPolygonTest(hull_list[0], point,False)
+
+if result == 1:
+    print("The point is inside the contour.")
+elif result == 0:
+    print("The point is on the contour.")
+else:
+    print("The point is outside the contour.")
+
+print(result)
+
+
+
+# for contour in cnt:
+#         hull = cv2.convexHull(contour)
+#         cv2.drawContours(im_draw, [hull], -1, (0,0,255), thickness=2)
+
+
+
+# cv2.imshow('input',im_draw)
+# cv2.waitKey()
