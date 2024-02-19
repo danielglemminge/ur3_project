@@ -209,7 +209,7 @@ def get_black_spot_coord(im, black_spot_mask):
     print('Number of spots: ', len(contours))
     hull_list = [cv2.convexHull(contour) for contour in contours]
     
-    centroid_list = []
+    centroid_list = []  
     for h in hull_list:
         # calculate moments for each contour
         M = cv2.moments(h)

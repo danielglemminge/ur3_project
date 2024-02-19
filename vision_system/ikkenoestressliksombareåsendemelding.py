@@ -44,6 +44,10 @@ for contour_list, cm in cnt_cm_zip:
     cv2.drawContours(im_draw, contour_list, -1, (255,0,0), 2)
     cv2.circle(im_draw, cm, 1, (0,0,255),2)                    
     cv2.imshow('im_black_spot', im_draw)
+    testpoint = contour_list[-1]
+
+
+
 
 
 cv2.drawContours(im_draw, hull_list, -1, (0,255,0), 2)
@@ -54,7 +58,7 @@ cv2.waitKey(0)
 point= (300,430)
 
 
-result = cv2.pointPolygonTest(hull_list[0], point,False)
+result = cv2.pointPolygonTest(hull_list[0], point, False)
 
 if result == True:
     print("The point is inswwwwwqide the contour.")
