@@ -6,6 +6,7 @@ from numpy.linalg import norm
 import math
 from mpl_toolkits.mplot3d import Axes3D
 from matplotlib import cm
+import cv2
 
 
 def closest_on_line(p1, p2, p3): # Returns a point[x,y] on the line from p1 to p2, that is closest to p3
@@ -20,17 +21,17 @@ def closest_on_line(p1, p2, p3): # Returns a point[x,y] on the line from p1 to p
 # Working params for planner:
 # k_att=3, k_rep=40000, k_centerline=0.3, step_size=1, max_iters=300
 class PotentialFieldPlanner4:
-    def __init__(self, start, goal, obstacles, k_att=3, k_rep=20000, k_centerline=0.5, step_size=0.5, goal_threshold=2, max_iters=400):
+    def __init__(self, start, goal, obstacles_with_centers_zip, k_att=3, k_rep=20000, k_centerline=0.5, step_size=0.5, goal_threshold=2, max_iters=400):
         self.start = start
         self.goal = goal
-        self.obstacles = obstacles
+        self.obstacles_with_centers_zip = obstacles_with_centers_zip
         self.k_att = k_att
         self.k_rep = k_rep
         self.k_c = k_centerline
         self.step_size = step_size
         self.max_iters = max_iters
         self.goal_threshold = goal_threshold
-
+        self.obstacles_present = len(obstacles_with_centers_zip) > 0 # True if obstacles is present, else False
 
     def attractive_goal(self):
         theta_goal = np.arctan2(self.goal[1]-self.start[1], self.goal[0]-self.start[0]) # Angle between start position and goal
@@ -46,20 +47,13 @@ class PotentialFieldPlanner4:
         phi_refpoint = np.arctan2(ref_point[1]-position[1], ref_point[0]-position[0])
         d_refpoint = np.linalg.norm(position - ref_point)
         exponent = 2
-        if len(self.obstacles) > 0:
-            for obstacle in self.obstacles:
-                dist_to_obstacle = np.linalg.norm(position - obstacle[:2])
-                obstacle_radius = obstacle[2]
-                if dist_to_obstacle > obstacle_radius:
-                    centerline_potential = round((self.k_c/exponent*(d_refpoint)**exponent),5) # 0.5*K_c*d**2
-                    if centerline_potential > 3:
-                        centerline_potential = 3
-                    force_centerline_x = round(self.k_c*(d_refpoint)**(exponent-1) * (np.cos(phi_refpoint)),5)
-                    force_centerline_y = round(self.k_c*(d_refpoint)**(exponent-1) * (np.sin(phi_refpoint)),5)
-                else:
-                    centerline_potential = 0
-                    force_centerline_x = 0
-                    force_centerline_y = 0
+        if self.obstacles_present:
+            for cnt, center in self.obstacles_with_centers_zip:
+                inside_test = cv2.pointPolygonTest(cnt, position,False)
+                if inside_test == True: # 1:point inside, 0:point on contour, -1:point outside
+                     
+                     
+                
         else: 
             centerline_potential = round((self.k_c/exponent*(d_refpoint)**exponent),5) # 0.5*K_c*d**2
             if centerline_potential > 3:
@@ -71,37 +65,9 @@ class PotentialFieldPlanner4:
     
 
     def repulsive_obstacle(self, position):
-        # http://www.diag.uniroma1.it/oriolo/amr/slides/MotionPlanning3_Slides.pdf
-        
-        if len(self.obstacles)>=1:    
-            repulsive_force_x = 0
-            repulsive_force_y = 0
-            repulsive_potential = 0
-            for obstacle in self.obstacles:
-                radius = obstacle[2]
-                distance = np.linalg.norm(position - obstacle[:2])
-                theta_obstacle = np.arctan2(obstacle[1]-position[1], obstacle[0]-position[0])
-                if distance <= radius:
-                    if distance > 0:
-                            
-                        exponent = 2 # if exponent=2->gain should be around 15000, if exponent=1, gain should be around 150
-                        repulsive_potential += (self.k_rep/exponent)*((1/distance)-(1/radius))**exponent
-                        if repulsive_potential > 3:
-                            repulsive_potential = 3
-                        repulsive_force = -(self.k_rep/distance**2)*((1/distance)-(1/(radius)))**(exponent-1)
-                        repulsive_force_x += round(repulsive_force * np.cos(theta_obstacle),5)
-                        repulsive_force_y += round(repulsive_force * np.sin(theta_obstacle),5)
-                    else:
-                        pass
-                        #repulsive_potential += 200 # cutoff to avoid infinitely scaling function.
-                else:
-                    repulsive_potential += 0
-                    repulsive_force_x += 0
-                    repulsive_force_y += 0
-        else:
-            repulsive_potential = 0
-            repulsive_force_x = 0
-            repulsive_force_y = 0
+        repulsive_force_x = 0
+        repulsive_force_y = 0
+        repulsive_potential = 0
         return repulsive_force_x, repulsive_force_y, repulsive_potential
 
     def plan(self):
@@ -138,10 +104,10 @@ class PotentialFieldPlanner4:
 if __name__=="__main__":
         
     # Example usage:
-    start = np.array([50, 50])
+    start = np.array([194, 477])
     goal = np.array([618, 349])
     #obstacles = [np.array([370, 280,20])]
-    obstacles = [np.array([100, 48, 20]), np.array([200, 50, 10])]
+    obstacles = [np.array([308,431,20]), np.array([445, 405, 10])]
     # obstacles = [] 
 
     planner = PotentialFieldPlanner4(start, goal, obstacles)

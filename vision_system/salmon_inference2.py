@@ -6,7 +6,7 @@ import copy
 import random
 # from vision_system.old_ideas.APF import PotentialFieldPlanner
 # from vision_system.old_ideas.APF2 import PotentialFieldPlanner2
-from APF3 import PotentialFieldPlanner3
+from APF4 import PotentialFieldPlanner4
 
 """
 Starting variables
@@ -205,10 +205,9 @@ def get_black_spot_coord(im, black_spot_mask):
     #black_spot_mask = cv2.cvtColor(black_spot_mask, cv2.COLOR_BGR2GRAY) # grayscale
     ret, thresh = cv2.threshold(black_spot_mask,120,255,cv2.THRESH_BINARY) #binary transformation
     # Find contour
-    contours, _ = cv2.findContours(thresh, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+    contours, _ = cv2.findContours(thresh, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_NONE)
     print('Number of spots: ', len(contours))
     hull_list = [cv2.convexHull(contour) for contour in contours]
-
     
     centroid_list = []
     for h in hull_list:
@@ -220,9 +219,9 @@ def get_black_spot_coord(im, black_spot_mask):
         cY = int(M["m01"] / M["m00"])
         centroid_list.append([cX, cY])
     
-    contour_com_zip = zip(hull_list, centroid_list) #contour and center off mass for respective contour
+    contours_with_centers_zip = zip(hull_list, centroid_list) #contour and center off mass for respective contour
 
-    return img_draw, contour_com_zip
+    return img_draw, contours_with_centers_zip
 #########################################################################
 
 def get_binary_masks(image):
@@ -260,14 +259,15 @@ def inference(input_source='image'):
             
 
             if np.any(melanin_mask) != None:
-                im_black_spot, contour_com_zip = get_black_spot_coord(raw_image, melanin_mask)
-                
-                for contour_list, cm in contour_com_zip:
-                    cv2.drawContours(im_black_spot, contour_list, -1, (255,0,0), 2)
-                    cv2.circle(im_black_spot, cm, 1, (0,0,255),2)
+                im_black_spot, contours_with_centers_zip = get_black_spot_coord(raw_image, melanin_mask)
+                for contour, center in contours_with_centers_zip:
+                    print(len(contour))
+                    cv2.drawContours(im_black_spot, contour, -1, (255,0,0), 2)
+                    cv2.circle(im_black_spot, center, 1, (0,0,255),2)
                                 
                 cv2.imshow('im_black_spot', im_black_spot)
                 #cv2.imwrite('/home/daniel/catkin_ws/src/ur3_project/documentation_images/scan_line/APF_scan_simple2.png', im_start_stop)
+
 
                 
                 while True:
