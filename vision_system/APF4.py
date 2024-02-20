@@ -36,7 +36,7 @@ def move_along_line(A, B, distance):
 # Working params for planner:
 # k_att=3, k_rep=40000, k_centerline=0.3, step_size=1, max_iters=300
 class PotentialFieldPlanner4:
-    def __init__(self, start, goal, hull_list, mass_center_list, k_att=1, k_rep=1, k_centerline=1, step_size=2, goal_threshold=5, max_iters=1000):
+    def __init__(self, start, goal, hull_list, mass_center_list, k_att=3, k_rep=1.2, k_centerline=1, step_size=3, goal_threshold=5, max_iters=1000):
         self.start = start
         self.goal = goal
         self.theta_start_goal = np.arctan2(goal[1]-start[1], goal[0]-start[0])
@@ -49,7 +49,7 @@ class PotentialFieldPlanner4:
         self.max_iters = max_iters
         self.goal_threshold = goal_threshold
         self.obstacles_present = len(hull_list) >= 1 # True if obstacles is present, else False
-        #self.obstacles_present = False #For turning off obstacle avoidance
+        self.obstacles_present = False #For turning off obstacle avoidance
 
     def attractive_goal(self, position):
         d_goal = np.linalg.norm(position - self.goal)
@@ -68,7 +68,7 @@ class PotentialFieldPlanner4:
             for hull in self.hull_list:
                 inside_check = cv2.pointPolygonTest(hull, np.ndarray.tolist(position),False)
                 if inside_check == -1: # 1:point inside, 0:point on contour, -1:point outside
-                     centerline_potential = self.k_c*d_refpoint
+                     centerline_potential = self.k_c * d_refpoint
                      force_centerline = self.k_c
                      force_centerline_x = round(force_centerline * np.cos(phi_refpoint),5)
                      force_centerline_y = round(force_centerline * np.sin(phi_refpoint),5)
@@ -99,15 +99,15 @@ class PotentialFieldPlanner4:
                     d_refpoint = np.linalg.norm(refpoint - position)
                     point_inside_check = 1
                     while point_inside_check >= 0:
-                        step = d_refpoint + 3
+                        step = d_refpoint + 5
                         edge_point = move_along_line(refpoint, position, step) # move from orthogonal point along center of mass line though current position until outside contour
                         point_inside_check = cv2.pointPolygonTest(cnt, edge_point, False)
-                        step += 3
+                        step += 5
                     d_contour = np.linalg.norm(position - edge_point)
 
                     print('DISTANCE CONTOUR: ',d_contour)
 
-                    repulsive_potential = 0.5 * d_contour**2
+                    repulsive_potential = 0.5 * self.k_rep * d_contour**2
                     repulsive_force = self.k_rep*d_contour
                     repulsive_force_x = round(repulsive_force * np.sin(self.theta_start_goal))
                     repulsive_force_y = round(repulsive_force * np.cos(self.theta_start_goal))

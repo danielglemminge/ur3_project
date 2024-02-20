@@ -220,7 +220,7 @@ def get_black_spot_coord(im, black_spot_mask):
         cY = int(M["m01"] / M["m00"])
         centroid_list.append([cX, cY])
     
-    cv2.drawContours(img_draw, hull_list, -1, (0,255,255), 1)
+    
             
 
     return img_draw, hull_list, centroid_list
@@ -229,7 +229,7 @@ def get_black_spot_coord(im, black_spot_mask):
 def get_binary_masks(image):
     print('Trying to get binary mask')
     belly_mask = cv2.imread(path_to_input+'images_michael/binary_mask_f1.jpg') # Read
-    melanin_mask = cv2.imread(path_to_input+'images_michael/melanin_mask_f1.jpg') # Read
+    melanin_mask = cv2.imread(path_to_input+'images_michael/melanin_mask_f1_extreme.jpg') # Read
 
     belly_mask = cv2.cvtColor(belly_mask, cv2.COLOR_BGR2GRAY) # Grayscale
     melanin_mask = cv2.cvtColor(melanin_mask, cv2.COLOR_BGR2GRAY) # Grayscale
@@ -262,11 +262,12 @@ def inference(input_source='image'):
             if np.any(melanin_mask) != None:
                 im_black_spot, hull_list, mass_center_list = get_black_spot_coord(raw_image, melanin_mask)
 
-                #for contour, center in contours_with_centers_zip:
-                #    print(contour[5], center)
 
-                cv2.imshow('im_start_stop', im_start_stop)
-                cv2.imshow('im_black_ spot', im_black_spot)
+
+                cv2.circle(im_black_spot, (int(pt0[0]), int(pt0[1])), 0, (0,0,255),5)
+                cv2.circle(im_black_spot, (int(pt1[0]), int(pt1[1])), 0, (0,255,0),5)
+                cv2.drawContours(im_black_spot, hull_list, -1, (0,255,255), 1)
+                #cv2.imshow('im_start_stop', im_start_stop)
                 
                 planner = PotentialFieldPlanner4(pt0, pt1, hull_list, mass_center_list)
 

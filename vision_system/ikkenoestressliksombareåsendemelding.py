@@ -8,7 +8,7 @@ import copy
 from itertools import zip_longest
 
 convexhullinput = '/home/daniel/catkin_ws/src/ur3_project/vision_system/input_images/convex_hull_input.jpg'
-convexhullinput2 = '/home/daniel/catkin_ws/src/ur3_project/vision_system/images_michael/melanin_mask_f5.jpg'
+convexhullinput2 = '/home/daniel/catkin_ws/src/ur3_project/vision_system/images_michael/melanin_mask_f1_extreme.jpg'
 
 
 melanin_mask = cv2.imread(convexhullinput2) # Read
