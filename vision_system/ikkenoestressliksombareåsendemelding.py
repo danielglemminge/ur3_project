@@ -60,9 +60,10 @@ cv2.imshow("Image", im_draw)
 cv2.waitKey(0)
 
 point= (300,430)
+point2 = np.array([194, 477])
 
 
-result = cv2.pointPolygonTest(hull_list[0], point, False)
+result = cv2.pointPolygonTest(hull_list[0], np.ndarray.tolist(point2), False)
 
 if result == True:
     print("The point is inswwwwwqide the contour.")
