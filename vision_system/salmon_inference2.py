@@ -220,12 +220,12 @@ def get_black_spot_coord(im, black_spot_mask):
         cY = int(M["m01"] / M["m00"])
         centroid_list.append([cX, cY])
     
-    hull_list= [[coord[0] for coord in contour] for contour in hull_list] # remove one layer of parenthesis, as the coordinates were written like [[x y]]
+    #hull_list= [[coord[0] for coord in contour] for contour in hull_list] # remove one layer of parenthesis, as the coordinates were written like [[x y]]
 
-    contours_with_centers_zip = zip(hull_list, centroid_list) #contour and center off mass for respective contour
+    # contours_with_centers_zip = zip(hull_list, centroid_list) #contour and center off mass for respective contour
             
 
-    return img_draw, contours_with_centers_zip
+    return img_draw, hull_list, centroid_list
 #########################################################################
 
 def get_binary_masks(image):
@@ -262,18 +262,15 @@ def inference(input_source='image'):
             
 
             if np.any(melanin_mask) != None:
-                im_black_spot, contours_with_centers_zip = get_black_spot_coord(raw_image, melanin_mask)
+                im_black_spot, hull_list, mass_center_list = get_black_spot_coord(raw_image, melanin_mask)
 
                 #for contour, center in contours_with_centers_zip:
                 #    print(contour[5], center)
                 
-                planner = PotentialFieldPlanner4(pt0, pt1, contours_with_centers_zip)
-                print('outside class',len(list(planner.obstacles_with_centers_zip)))
+                planner = PotentialFieldPlanner4(pt0, pt1, hull_list, mass_center_list)
 
                 path = planner.plan()
-                # print('HERE')
-                # for contour, center in planner.obstacles_with_centers_zip:
-                #     print(contour[5], center)
+               
 
                 
         

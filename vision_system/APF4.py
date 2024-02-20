@@ -36,19 +36,19 @@ def move_along_line(A, B, distance):
 # Working params for planner:
 # k_att=3, k_rep=40000, k_centerline=0.3, step_size=1, max_iters=300
 class PotentialFieldPlanner4:
-    def __init__(self, start, goal, obstacles_with_centers_zip, k_att=3, k_rep=1, k_centerline=1, step_size=0.5, goal_threshold=2, max_iters=400):
+    def __init__(self, start, goal, hull_list, mass_center_list, k_att=3, k_rep=1, k_centerline=1, step_size=0.5, goal_threshold=2, max_iters=400):
         self.start = start
         self.goal = goal
         self.theta_start_goal = np.arctan2(goal[1]-start[1], goal[0]-start[0])
-        self.obstacles_with_centers_zip = obstacles_with_centers_zip
+        self.hull_list = hull_list
+        self.mass_center_list = mass_center_list
         self.k_att = k_att
         self.k_rep = k_rep
         self.k_c = k_centerline
         self.step_size = step_size
         self.max_iters = max_iters
         self.goal_threshold = goal_threshold
-        self.obstacles_present = len(list(obstacles_with_centers_zip)) >= 1 # True if obstacles is present, else False
-        print('in class',len(list(obstacles_with_centers_zip)))
+        self.obstacles_present = len(hull_list) >= 1 # True if obstacles is present, else False
 
     def attractive_goal(self, position):
         d_goal = np.linalg.norm(position - self.goal)
@@ -64,8 +64,8 @@ class PotentialFieldPlanner4:
         phi_refpoint = np.arctan2(ref_point[1]-position[1], ref_point[0]-position[0])
         d_refpoint = np.linalg.norm(position - ref_point)
         if self.obstacles_present:
-            for cnt, _ in self.obstacles_with_centers_zip:
-                inside_check = cv2.pointPolygonTest(cnt, position,False)
+            for hull in self.hull_list:
+                inside_check = cv2.pointPolygonTest(hull, position,False)
                 if inside_check == -1: # 1:point inside, 0:point on contour, -1:point outside
                      centerline_potential = self.k_c*d_refpoint
                      force_centerline = self.k_c
@@ -90,10 +90,11 @@ class PotentialFieldPlanner4:
 
         if self.obstacles_present:
             print('obstacles present = True')
-            print(list(self.obstacles_with_centers_zip))
             
-            for cnt, center in self.obstacles_with_centers_zip:
+            for cnt, center in zip(self.hull_list, self.mass_center_list):
                 print('for cnt, center loop')
+                print(position)
+
                 inside_check = cv2.pointPolygonTest(cnt, position, False)
                 if inside_check == 1: # 1:point inside, 0:point on contour, -1:point outside
                     print('inside check = True')
