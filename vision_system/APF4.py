@@ -16,7 +16,7 @@ def closest_on_line(p1, p2, p3): # Returns a point[x,y] on the line from p1 to p
         dx, dy = x2-x1, y2-y1
         det = dx*dx + dy*dy
         a = (dy*(y3-y1)+dx*(x3-x1))/det
-        return [x1+a*dx, y1+a*dy]
+        return [round(x1+a*dx), round(y1+a*dy)]
 
 def move_along_line(A, B, distance):
     # Calculate the direction vector from A to B
@@ -65,7 +65,7 @@ class PotentialFieldPlanner4:
         d_refpoint = np.linalg.norm(position - ref_point)
         if self.obstacles_present:
             for hull in self.hull_list:
-                inside_check = cv2.pointPolygonTest(hull, position,False)
+                inside_check = cv2.pointPolygonTest(hull, np.ndarray.tolist(position),False)
                 if inside_check == -1: # 1:point inside, 0:point on contour, -1:point outside
                      centerline_potential = self.k_c*d_refpoint
                      force_centerline = self.k_c
@@ -86,21 +86,14 @@ class PotentialFieldPlanner4:
     
 
     def repulsive_obstacle(self, position):
-        print('entered repulsive function')
-
         if self.obstacles_present:
-            print('obstacles present = True')
-            
             for cnt, center in zip(self.hull_list, self.mass_center_list):
-                print('for cnt, center loop')
-                print(position)
-
-                inside_check = cv2.pointPolygonTest(cnt, position, False)
+                inside_check = cv2.pointPolygonTest(cnt, np.ndarray.tolist(position), False)
                 if inside_check == 1: # 1:point inside, 0:point on contour, -1:point outside
                     print('inside check = True')
                     # Create an imaginary line paralel to the start-stop line through the center of mass of the contour, then find the orthogonal point to position
                     refpoint = closest_on_line(center, [center[0]*50*np.cos(self.theta_start_goal),center[1]*50*np.sin(self.theta_start_goal)], position)
-                    d_refpoint = np.linalg.norm(refpoint, position)
+                    d_refpoint = np.linalg.norm(refpoint - position)
                     point_inside_check = 1
                     while point_inside_check >= 0:
                         step = d_refpoint + 3
@@ -113,8 +106,8 @@ class PotentialFieldPlanner4:
 
                     repulsive_potential = 0.5 * d_contour**2
                     repulsive_force = self.k_rep*d_contour
-                    repulsive_force_x = round(repulsive_force * np.sin(self.theta_start_goal), 5)
-                    repulsive_force_y = round(repulsive_force * np.cos(self.theta_start_goal), 5)
+                    repulsive_force_x = repulsive_force * np.sin(self.theta_start_goal)
+                    repulsive_force_y = repulsive_force * np.cos(self.theta_start_goal)
                 else:
                     print('inside check = False')
                     repulsive_potential = 0
