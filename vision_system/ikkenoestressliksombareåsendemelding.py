@@ -5,6 +5,7 @@ import argparse
 import random as rng
 import cv2
 import copy
+from itertools import zip_longest
 
 convexhullinput = '/home/daniel/catkin_ws/src/ur3_project/vision_system/input_images/convex_hull_input.jpg'
 convexhullinput2 = '/home/daniel/catkin_ws/src/ur3_project/vision_system/images_michael/melanin_mask_f5.jpg'
@@ -34,6 +35,9 @@ for h in hull_list:
 
 
 cnt_cm_zip = zip(hull_list, centroid_list)
+
+
+
 
 
 

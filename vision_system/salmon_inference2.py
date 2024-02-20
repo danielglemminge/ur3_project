@@ -7,6 +7,7 @@ import random
 # from vision_system.old_ideas.APF import PotentialFieldPlanner
 # from vision_system.old_ideas.APF2 import PotentialFieldPlanner2
 from APF4 import PotentialFieldPlanner4
+from itertools import zip_longest
 
 """
 Starting variables
@@ -206,9 +207,9 @@ def get_black_spot_coord(im, black_spot_mask):
     ret, thresh = cv2.threshold(black_spot_mask,120,255,cv2.THRESH_BINARY) #binary transformation
     # Find contour
     contours, _ = cv2.findContours(thresh, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_NONE)
-    print('Number of spots: ', len(contours))
+    #print('Number of spots: ', len(contours))
     hull_list = [cv2.convexHull(contour) for contour in contours]
-    
+
     centroid_list = []  
     for h in hull_list:
         # calculate moments for each contour
@@ -219,7 +220,10 @@ def get_black_spot_coord(im, black_spot_mask):
         cY = int(M["m01"] / M["m00"])
         centroid_list.append([cX, cY])
     
+    hull_list= [[coord[0] for coord in contour] for contour in hull_list] # remove one layer of parenthesis, as the coordinates were written like [[x y]]
+
     contours_with_centers_zip = zip(hull_list, centroid_list) #contour and center off mass for respective contour
+            
 
     return img_draw, contours_with_centers_zip
 #########################################################################
@@ -242,7 +246,6 @@ def get_binary_masks(image):
 #########################################################################
 
 def inference(input_source='image'):
-    # Top level function
 
     if input_source == 'image':
         # Read the image input for further processing
@@ -255,17 +258,29 @@ def inference(input_source='image'):
         if np.any(belly_mask) != None:
 
             im_start_stop, pt0, pt1 = get_scan_start_stop(raw_image, belly_mask)
-            print('p0, p1:',pt0, pt1)
+            #print('p0, p1:',pt0, pt1)
             
 
             if np.any(melanin_mask) != None:
                 im_black_spot, contours_with_centers_zip = get_black_spot_coord(raw_image, melanin_mask)
-                for contour, center in contours_with_centers_zip:
-                    print(len(contour))
-                    cv2.drawContours(im_black_spot, contour, -1, (255,0,0), 2)
-                    cv2.circle(im_black_spot, center, 1, (0,0,255),2)
+
+                #for contour, center in contours_with_centers_zip:
+                #    print(contour[5], center)
+                
+                planner = PotentialFieldPlanner4(pt0, pt1, contours_with_centers_zip)
+                print('outside class',len(list(planner.obstacles_with_centers_zip)))
+
+                path = planner.plan()
+                # print('HERE')
+                # for contour, center in planner.obstacles_with_centers_zip:
+                #     print(contour[5], center)
+
+                
+        
+                for coord in path:
+                    cv2.circle(im_black_spot, (int(coord[0]), int(coord[1])), 0, (255,0,0),1)
                                 
-                cv2.imshow('im_black_spot', im_black_spot)
+                #cv2.imshow('im_black_spot', im_black_spot)
                 #cv2.imwrite('/home/daniel/catkin_ws/src/ur3_project/documentation_images/scan_line/APF_scan_simple2.png', im_start_stop)
 
 

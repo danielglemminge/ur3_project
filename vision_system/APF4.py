@@ -47,7 +47,8 @@ class PotentialFieldPlanner4:
         self.step_size = step_size
         self.max_iters = max_iters
         self.goal_threshold = goal_threshold
-        self.obstacles_present = len(obstacles_with_centers_zip) > 0 # True if obstacles is present, else False
+        self.obstacles_present = len(list(obstacles_with_centers_zip)) >= 1 # True if obstacles is present, else False
+        print('in class',len(list(obstacles_with_centers_zip)))
 
     def attractive_goal(self, position):
         d_goal = np.linalg.norm(position - self.goal)
@@ -85,10 +86,17 @@ class PotentialFieldPlanner4:
     
 
     def repulsive_obstacle(self, position):
+        print('entered repulsive function')
+
         if self.obstacles_present:
+            print('obstacles present = True')
+            print(list(self.obstacles_with_centers_zip))
+            
             for cnt, center in self.obstacles_with_centers_zip:
+                print('for cnt, center loop')
                 inside_check = cv2.pointPolygonTest(cnt, position, False)
                 if inside_check == 1: # 1:point inside, 0:point on contour, -1:point outside
+                    print('inside check = True')
                     # Create an imaginary line paralel to the start-stop line through the center of mass of the contour, then find the orthogonal point to position
                     refpoint = closest_on_line(center, [center[0]*50*np.cos(self.theta_start_goal),center[1]*50*np.sin(self.theta_start_goal)], position)
                     d_refpoint = np.linalg.norm(refpoint, position)
@@ -100,20 +108,26 @@ class PotentialFieldPlanner4:
                         step += 3
                     d_contour = np.linalg.norm(position, edge_point)
 
+                    print(d_contour)
+
                     repulsive_potential = 0.5 * d_contour**2
                     repulsive_force = self.k_rep*d_contour
                     repulsive_force_x = round(repulsive_force * np.sin(self.theta_start_goal), 5)
                     repulsive_force_y = round(repulsive_force * np.cos(self.theta_start_goal), 5)
                 else:
+                    print('inside check = False')
                     repulsive_potential = 0
                     repulsive_force = 0
                     repulsive_force_x = 0
-                    repulsive_force_y = 0   
+                    repulsive_force_y = 0  
+            print('after skipped for loop')
         else:
             repulsive_potential = 0
             repulsive_force = 0
-            repulsive_force_x = repulsive_force
-            repulsive_force_y = repulsive_force
+            repulsive_force_x = 0
+            repulsive_force_y = 0
+        #print('right before return arguments')
+
         return repulsive_force_x, repulsive_force_y, repulsive_potential
 
     def plan(self):
@@ -153,7 +167,7 @@ if __name__=="__main__":
     start = np.array([194, 477])
     goal = np.array([618, 349])
     #obstacles = [np.array([370, 280,20])]
-    obstacles = [np.array([308,431,20]), np.array([445, 405, 10])]
+    #obstacles = [np.array([308,431,20]), np.array([445, 405, 10])]
     #obstacles = [] 
 
     planner = PotentialFieldPlanner4(start, goal, obstacles)
