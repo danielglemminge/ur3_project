@@ -220,9 +220,6 @@ def get_black_spot_coord(im, black_spot_mask):
         cY = int(M["m01"] / M["m00"])
         centroid_list.append([cX, cY])
     
-    
-            
-
     return img_draw, hull_list, centroid_list
 #########################################################################
 

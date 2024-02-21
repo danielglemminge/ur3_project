@@ -36,7 +36,7 @@ def move_along_line(A, B, distance):
 # Working params for planner:
 # k_att=3, k_rep=40000, k_centerline=0.3, step_size=1, max_iters=300
 class PotentialFieldPlanner4:
-    def __init__(self, start, goal, hull_list, mass_center_list, k_att=3, k_rep=1.2, k_centerline=1, step_size=3, goal_threshold=5, max_iters=1000):
+    def __init__(self, start, goal, hull_list, mass_center_list, k_att=1, k_rep=1.2, k_centerline=1, step_size=1, goal_threshold=5, max_iters=1000):
         self.start = start
         self.goal = goal
         self.theta_start_goal = np.arctan2(goal[1]-start[1], goal[0]-start[0])
@@ -49,19 +49,20 @@ class PotentialFieldPlanner4:
         self.max_iters = max_iters
         self.goal_threshold = goal_threshold
         self.obstacles_present = len(hull_list) >= 1 # True if obstacles is present, else False
-        self.obstacles_present = False #For turning off obstacle avoidance
+        #self.obstacles_present = False #For turning off obstacle avoidance
 
     def attractive_goal(self, position):
         d_goal = np.linalg.norm(position - self.goal)
-        goal_potential = self.k_att*d_goal
+        goal_potential = round(self.k_att*d_goal,1)
         force_goal = self.k_att
-        force_goal_x = round(force_goal * (np.cos(self.theta_start_goal)),5)
-        force_goal_y = round(force_goal * (np.sin(self.theta_start_goal)),5)
-        return force_goal_x, force_goal_y, goal_potential
+        force_goal_x = force_goal * (np.cos(self.theta_start_goal))
+        force_goal_y = force_goal * (np.sin(self.theta_start_goal))
+        return round(force_goal_x, 2), round(force_goal_y, 1), round(goal_potential, 1)
     
     
     def attractive_centerline(self, position):
         ref_point = closest_on_line(self.start, self.goal, position)
+        print(ref_point)
         phi_refpoint = np.arctan2(ref_point[1]-position[1], ref_point[0]-position[0])
         d_refpoint = np.linalg.norm(position - ref_point)
         if self.obstacles_present:
@@ -70,20 +71,20 @@ class PotentialFieldPlanner4:
                 if inside_check == -1: # 1:point inside, 0:point on contour, -1:point outside
                      centerline_potential = self.k_c * d_refpoint
                      force_centerline = self.k_c
-                     force_centerline_x = round(force_centerline * np.cos(phi_refpoint),5)
-                     force_centerline_y = round(force_centerline * np.sin(phi_refpoint),5)
+                     force_centerline_x = force_centerline * np.cos(phi_refpoint)
+                     force_centerline_y = force_centerline * np.sin(phi_refpoint)
                 else:
                     centerline_potential = 0
                     force_centerline = 0
-                    force_centerline_x = round(force_centerline * np.cos(phi_refpoint),5)
-                    force_centerline_y = round(force_centerline * np.sin(phi_refpoint),5)
+                    force_centerline_x = force_centerline * np.cos(phi_refpoint)
+                    force_centerline_y = force_centerline * np.sin(phi_refpoint)
         else:
             centerline_potential = self.k_c*d_refpoint
             force_centerline = self.k_c
-            force_centerline_x = round(force_centerline * np.cos(phi_refpoint),5)
-            force_centerline_y = round(force_centerline * np.sin(phi_refpoint),5)
+            force_centerline_x = force_centerline * np.cos(phi_refpoint)
+            force_centerline_y = force_centerline * np.sin(phi_refpoint)
         
-        return force_centerline_x, force_centerline_y, centerline_potential
+        return round(force_centerline_x, 2), round(force_centerline_y, 2), round(centerline_potential, 2)
     
 
     def repulsive_obstacle(self, position):
@@ -92,16 +93,16 @@ class PotentialFieldPlanner4:
                 
                 inside_check = cv2.pointPolygonTest(cnt, np.ndarray.tolist(position), False)
                 if inside_check == 1: # 1:point inside, 0:point on contour, -1:point outside
-                    print('inside check = True')
-                    print(np.ndarray.tolist(position))
                     # Create an imaginary line paralel to the start-stop line through the center of mass of the contour, then find the orthogonal point to position
-                    refpoint = closest_on_line(center, [center[0]*50*np.cos(self.theta_start_goal),center[1]*50*np.sin(self.theta_start_goal)], position)
+                    refpoint = closest_on_line(center, [center[0]+50*np.cos(self.theta_start_goal), center[1]+50*np.sin(self.theta_start_goal)], position)
                     d_refpoint = np.linalg.norm(refpoint - position)
                     point_inside_check = 1
+                    step = d_refpoint + 5
                     while point_inside_check >= 0:
-                        step = d_refpoint + 5
                         edge_point = move_along_line(refpoint, position, step) # move from orthogonal point along center of mass line though current position until outside contour
-                        point_inside_check = cv2.pointPolygonTest(cnt, edge_point, False)
+                        point_inside_check = cv2.pointPolygonTest(cnt, [edge_point[0], edge_point[1]], False)
+                        
+                        print('poly-check', point_inside_check)
                         step += 5
                     d_contour = np.linalg.norm(position - edge_point)
 
@@ -109,8 +110,8 @@ class PotentialFieldPlanner4:
 
                     repulsive_potential = 0.5 * self.k_rep * d_contour**2
                     repulsive_force = self.k_rep*d_contour
-                    repulsive_force_x = round(repulsive_force * np.sin(self.theta_start_goal))
-                    repulsive_force_y = round(repulsive_force * np.cos(self.theta_start_goal))
+                    repulsive_force_x = repulsive_force * np.sin(self.theta_start_goal)
+                    repulsive_force_y = repulsive_force * np.cos(self.theta_start_goal)
                 else:
                     print('inside check = False')
                     repulsive_potential = 0
@@ -124,7 +125,7 @@ class PotentialFieldPlanner4:
             repulsive_force_y = 0
         #print('right before return arguments')
 
-        return repulsive_force_x, repulsive_force_y, repulsive_potential
+        return round(repulsive_force_x, 2), round(repulsive_force_y, 2), round(repulsive_potential, 2)
 
     def plan(self):
         current_position = self.start
