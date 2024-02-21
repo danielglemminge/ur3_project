@@ -36,7 +36,7 @@ def move_along_line(A, B, distance):
 # Working params for planner:
 # k_att=3, k_rep=40000, k_centerline=0.3, step_size=1, max_iters=300
 class PotentialFieldPlanner4:
-    def __init__(self, start, goal, hull_list, mass_center_list, k_att=2, k_rep=1.3, k_centerline=1, step_size=1, goal_threshold=2, max_iters=1000):
+    def __init__(self, start, goal, hull_list, mass_center_list, k_att=2, k_rep=1, k_centerline=1, step_size=1, goal_threshold=2, max_iters=1000):
         self.start = start
         self.goal = goal
         self.theta_start_goal = np.arctan2(goal[1]-start[1], goal[0]-start[0])
@@ -89,6 +89,10 @@ class PotentialFieldPlanner4:
 
     def repulsive_obstacle(self, position):
         if self.obstacles_present:
+            repulsive_potential = 0
+            repulsive_force = 0
+            repulsive_force_x = 0
+            repulsive_force_y = 0
             for cnt, center in zip(self.hull_list, self.mass_center_list):
                 
                 inside_check = cv2.pointPolygonTest(cnt, np.ndarray.tolist(position), False)
@@ -105,16 +109,21 @@ class PotentialFieldPlanner4:
                     d_contour = np.linalg.norm(position - edge_point)
 
                     theta_repulsive = np.arctan2(position[1] - edge_point[1], position[0] - edge_point[0])
+                    #theta_repulsive = np.arctan2(edge_point[1]- position[1] , edge_point[0] - position[0])
+                    print('Theta_start_goal',np.rad2deg(self.theta_start_goal))
+                    print('Theta_repulsive',np.rad2deg(theta_repulsive))
+                    print('Dot product', np.dot(self.theta_start_goal, theta_repulsive))
+                    
                 
-                    repulsive_potential = 0.5 * self.k_rep * d_contour**2
-                    repulsive_force = self.k_rep*d_contour
-                    repulsive_force_x = repulsive_force * np.sin(theta_repulsive)
-                    repulsive_force_y = repulsive_force * np.cos(theta_repulsive)
+                    repulsive_potential += 0.5 * self.k_rep * d_contour**2
+                    repulsive_force += self.k_rep*d_contour
+                    repulsive_force_x += repulsive_force * np.sin(theta_repulsive)
+                    repulsive_force_y += repulsive_force * np.cos(theta_repulsive)
                 else:
-                    repulsive_potential = 0
-                    repulsive_force = 0
-                    repulsive_force_x = 0
-                    repulsive_force_y = 0  
+                    repulsive_potential += 0
+                    repulsive_force += 0
+                    repulsive_force_x += 0
+                    repulsive_force_y += 0  
         else:
             repulsive_potential = 0
             repulsive_force = 0

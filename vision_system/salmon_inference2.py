@@ -120,6 +120,7 @@ def get_scan_start_stop(im, binary_mask):
     belly_norm = np.linalg.norm(belly_line)
     # print("belly_line length = ", belly_norm)
     offset = belly_norm/30
+    offset = 2
 
     # Create two points that are +90 and -90 to the belly line. 
     x1,y1 = int(offset * np.cos(theta - np.pi/2)), int(offset * np.sin(theta - np.pi/2))
@@ -225,8 +226,8 @@ def get_black_spot_coord(im, black_spot_mask):
 
 def get_binary_masks(image):
     print('Trying to get binary mask')
-    belly_mask = cv2.imread(path_to_input+'images_michael/binary_mask_f1.jpg') # Read
-    melanin_mask = cv2.imread(path_to_input+'images_michael/melanin_mask_f1_extreme.jpg') # Read
+    belly_mask = cv2.imread(path_to_input+'images_michael/binary_mask_f3.jpg') # Read
+    melanin_mask = cv2.imread(path_to_input+'images_michael/melanin_mask_f3.jpg') # Read
 
     belly_mask = cv2.cvtColor(belly_mask, cv2.COLOR_BGR2GRAY) # Grayscale
     melanin_mask = cv2.cvtColor(melanin_mask, cv2.COLOR_BGR2GRAY) # Grayscale
@@ -244,7 +245,7 @@ def inference(input_source='image'):
 
     if input_source == 'image':
         # Read the image input for further processing
-        raw_image = cv2.imread(path_to_input + 'images_michael/input_f1.jpg')
+        raw_image = cv2.imread(path_to_input + 'images_michael/input_f3.jpg')
         raw_image = cv2.resize(raw_image, (0, 0), fx = 0.5, fy = 0.5)
         im_draw = copy.deepcopy(raw_image)
 
@@ -263,7 +264,7 @@ def inference(input_source='image'):
 
                 cv2.circle(im_black_spot, (int(pt0[0]), int(pt0[1])), 0, (0,0,255),5)
                 cv2.circle(im_black_spot, (int(pt1[0]), int(pt1[1])), 0, (0,255,0),5)
-                cv2.drawContours(im_black_spot, hull_list, -1, (0,255,255), 1)
+                cv2.drawContours(im_black_spot, hull_list, -1, (0,0,255), 1)
                 #cv2.imshow('im_start_stop', im_start_stop)
                 
                 planner = PotentialFieldPlanner4(pt0, pt1, hull_list, mass_center_list)
@@ -275,7 +276,7 @@ def inference(input_source='image'):
                 
         
                 for coord in path:
-                    cv2.circle(im_black_spot, (int(coord[0]), int(coord[1])), 0, (0,255,0),1)
+                    cv2.circle(im_black_spot, (int(coord[0]), int(coord[1])), 0, (0,255,0),2)
                                 
                 cv2.imshow('im_black_spot', im_black_spot)
                 #cv2.imwrite('/home/daniel/catkin_ws/src/ur3_project/documentation_images/scan_line/APF_scan_simple2.png', im_start_stop)
