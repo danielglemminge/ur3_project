@@ -275,7 +275,7 @@ def inference(input_source='image'):
                 
         
                 for coord in path:
-                    cv2.circle(im_black_spot, (int(coord[0]), int(coord[1])), 0, (0,255,255),1)
+                    cv2.circle(im_black_spot, (int(coord[0]), int(coord[1])), 0, (0,255,0),1)
                                 
                 cv2.imshow('im_black_spot', im_black_spot)
                 #cv2.imwrite('/home/daniel/catkin_ws/src/ur3_project/documentation_images/scan_line/APF_scan_simple2.png', im_start_stop)
