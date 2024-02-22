@@ -108,17 +108,18 @@ class PotentialFieldPlanner4:
                         step += 1
                     d_contour = np.linalg.norm(position - edge_point)
 
-                    theta_repulsive = np.arctan2(position[1] - edge_point[1], position[0] - edge_point[0])
-                    #theta_repulsive = np.arctan2(edge_point[1]- position[1] , edge_point[0] - position[0])
-                    print('Theta_start_goal',np.rad2deg(self.theta_start_goal))
+                    theta_repulsive = np.arctan2(refpoint[1] - edge_point[1], refpoint[0] - edge_point[0])
+                    theta_repulsive2 = np.arctan2(edge_point[1]- refpoint[1] , edge_point[0] - refpoint[0])
+                    # print('Theta_start_goal',np.rad2deg(self.theta_start_goal))
                     print('Theta_repulsive',np.rad2deg(theta_repulsive))
-                    print('Dot product', np.dot(self.theta_start_goal, theta_repulsive))
+                    print('Theta_repulsive2',np.rad2deg(theta_repulsive2))
+                    # print('Dot product', np.dot(self.theta_start_goal, theta_repulsive))
                     
                 
                     repulsive_potential += 0.5 * self.k_rep * d_contour**2
                     repulsive_force += self.k_rep*d_contour
-                    repulsive_force_x += repulsive_force * np.sin(theta_repulsive)
-                    repulsive_force_y += repulsive_force * np.cos(theta_repulsive)
+                    repulsive_force_x += repulsive_force * np.cos(theta_repulsive2)
+                    repulsive_force_y += repulsive_force * np.sin(theta_repulsive2)
                 else:
                     repulsive_potential += 0
                     repulsive_force += 0
