@@ -8,6 +8,8 @@ import random
 # from vision_system.old_ideas.APF2 import PotentialFieldPlanner2
 from APF4 import PotentialFieldPlanner4
 from itertools import zip_longest
+from scipy.interpolate import splprep, splev
+import matplotlib.pyplot as plt
 
 """
 Starting variables
@@ -283,18 +285,30 @@ def inference(input_source='image'):
                 cv2.drawContours(im_black_spot, hull_list, -1, (0,0,255), 1)
                 #cv2.imshow('im_start_stop', im_start_stop)
 
-                hull_list = scale_contour(hull_list, 1.3) #scaling contours
+                hull_list = scale_contour(hull_list, 1.5) #scaling contours
                 
                 planner = PotentialFieldPlanner4(pt0, pt1, hull_list, mass_center_list)
 
                 path = planner.plan()
 
-                print('path computed')
+                print('path computed, length:', len(path))
 
-                
+                path_segments = path[::10]
         
+                
+
+
+                tck, u = splprep(path_segments.T, u=None, s=0.0) 
+                u_new = np.linspace(u.min(), u.max(), 100)
+                x_new, y_new = splev(u_new, tck, der=0)
+
                 for coord in path:
                     cv2.circle(im_black_spot, (int(coord[0]), int(coord[1])), 0, (0,255,0),2)
+                
+                # for x,y in zip(x_new, y_new):
+                #     cv2.circle(im_black_spot, (int(x), int(y)), 0, (0,255,0),2)
+
+                
                                 
                 cv2.imshow('im_black_spot', im_black_spot)
                 #cv2.imwrite('/home/daniel/catkin_ws/src/ur3_project/documentation_images/scan_line/APF4_fish_4.jpg', im_black_spot)
