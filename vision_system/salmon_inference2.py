@@ -302,16 +302,16 @@ def inference(input_source='image'):
                 u_new = np.linspace(u.min(), u.max(), 100)
                 x_new, y_new = splev(u_new, tck, der=0)
 
-                for coord in path:
-                    cv2.circle(im_black_spot, (int(coord[0]), int(coord[1])), 0, (0,255,0),2)
+                # for coord in path:
+                #     cv2.circle(im_black_spot, (int(coord[0]), int(coord[1])), 0, (0,255,0),2)
                 
-                # for x,y in zip(x_new, y_new):
-                #     cv2.circle(im_black_spot, (int(x), int(y)), 0, (0,255,0),2)
+                for x,y in zip(x_new, y_new):
+                    cv2.circle(im_black_spot, (int(x), int(y)), 0, (0,255,0),2)
 
                 
                                 
                 cv2.imshow('im_black_spot', im_black_spot)
-                #cv2.imwrite('/home/daniel/catkin_ws/src/ur3_project/documentation_images/scan_line/APF4_fish_4.jpg', im_black_spot)
+                #cv2.imwrite('/home/daniel/catkin_ws/src/ur3_project/documentation_images/scan_line/APF4_smoothing_fish_1.jpg', im_black_spot)
 
 
                 

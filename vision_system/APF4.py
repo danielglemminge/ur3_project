@@ -39,7 +39,7 @@ def move_along_line(A, B, distance):
 # Working params for planner:
 # k_att=3, k_rep=40000, k_centerline=0.3, step_size=1, max_iters=300
 class PotentialFieldPlanner4:
-    def __init__(self, start, goal, hull_list, mass_center_list, k_att=2, k_rep=1, k_centerline=1, obstacle_scale = 1.2, step_size=1, goal_threshold=2, max_iters=1000):
+    def __init__(self, start, goal, hull_list, mass_center_list, k_att=2, k_rep=1, k_centerline=1, obstacle_scale = 1.2, step_size=1, goal_threshold=5, max_iters=1000):
         self.start = start
         self.goal = goal
         self.theta_start_goal = np.arctan2(goal[1]-start[1], goal[0]-start[0])
