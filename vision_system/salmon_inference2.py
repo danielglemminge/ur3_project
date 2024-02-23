@@ -28,6 +28,21 @@ def limit_pt(pt, width, height):
     pt[1] = min(max(0,pt[1]), height)
     return pt
 
+def scale_contour(contours, scale):
+    contours_scaled = []
+    for cnt in contours:    
+        M = cv2.moments(cnt)
+        cx = int(M['m10']/M['m00'])
+        cy = int(M['m01']/M['m00'])
+
+        cnt_norm = cnt - [cx, cy]
+        cnt_scaled = cnt_norm * scale
+        cnt_scaled = cnt_scaled + [cx, cy]
+        cnt_scaled = cnt_scaled.astype(np.int32)
+        contours_scaled.append(cnt_scaled)
+
+    return contours_scaled
+
 #########################################################################
 
 
@@ -219,14 +234,16 @@ def get_black_spot_coord(im, black_spot_mask):
         cX = int(M["m10"] / M["m00"])
         cY = int(M["m01"] / M["m00"])
         centroid_list.append([cX, cY])
+
+    
     
     return img_draw, hull_list, centroid_list
 #########################################################################
 
 def get_binary_masks(image):
     print('Trying to get binary mask')
-    belly_mask = cv2.imread(path_to_input+'images_michael/binary_mask_f4.jpg') # Read
-    melanin_mask = cv2.imread(path_to_input+'images_michael/melanin_mask_f4.jpg') # Read
+    belly_mask = cv2.imread(path_to_input+'images_michael/binary_mask_f1.jpg') # Read
+    melanin_mask = cv2.imread(path_to_input+'images_michael/melanin_mask_f1.jpg') # Read
 
     belly_mask = cv2.cvtColor(belly_mask, cv2.COLOR_BGR2GRAY) # Grayscale
     melanin_mask = cv2.cvtColor(melanin_mask, cv2.COLOR_BGR2GRAY) # Grayscale
@@ -244,7 +261,7 @@ def inference(input_source='image'):
 
     if input_source == 'image':
         # Read the image input for further processing
-        raw_image = cv2.imread(path_to_input + 'images_michael/input_f4.jpg')
+        raw_image = cv2.imread(path_to_input + 'images_michael/input_f1.jpg')
         raw_image = cv2.resize(raw_image, (0, 0), fx = 0.5, fy = 0.5)
         im_draw = copy.deepcopy(raw_image)
 
@@ -265,6 +282,8 @@ def inference(input_source='image'):
                 cv2.circle(im_black_spot, (int(pt1[0]), int(pt1[1])), 0, (0,255,0),5)
                 cv2.drawContours(im_black_spot, hull_list, -1, (0,0,255), 1)
                 #cv2.imshow('im_start_stop', im_start_stop)
+
+                hull_list = scale_contour(hull_list, 1.3) #scaling contours
                 
                 planner = PotentialFieldPlanner4(pt0, pt1, hull_list, mass_center_list)
 

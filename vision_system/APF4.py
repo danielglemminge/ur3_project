@@ -33,10 +33,13 @@ def move_along_line(A, B, distance):
     
     return new_point
 
+
+
+
 # Working params for planner:
 # k_att=3, k_rep=40000, k_centerline=0.3, step_size=1, max_iters=300
 class PotentialFieldPlanner4:
-    def __init__(self, start, goal, hull_list, mass_center_list, k_att=2, k_rep=1, k_centerline=1, step_size=1, goal_threshold=2, max_iters=1000):
+    def __init__(self, start, goal, hull_list, mass_center_list, k_att=2, k_rep=1, k_centerline=1, obstacle_scale = 1.2, step_size=1, goal_threshold=2, max_iters=1000):
         self.start = start
         self.goal = goal
         self.theta_start_goal = np.arctan2(goal[1]-start[1], goal[0]-start[0])
@@ -47,9 +50,11 @@ class PotentialFieldPlanner4:
         self.k_c = k_centerline
         self.step_size = step_size
         self.max_iters = max_iters
+        self.obstacle_scale = obstacle_scale
         self.goal_threshold = goal_threshold
         self.obstacles_present = len(hull_list) >= 1 # True if obstacles is present, else False
         #self.obstacles_present = False #For turning off obstacle avoidance
+
 
     def attractive_goal(self, position):
         d_goal = np.linalg.norm(position - self.goal)
