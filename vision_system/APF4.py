@@ -59,9 +59,10 @@ class PotentialFieldPlanner4:
     def attractive_goal(self, position):
         d_goal = np.linalg.norm(position - self.goal)
         goal_potential = round(self.k_att*d_goal,1)
+        theta_goal = np.arctan2(self.goal[1]-position[1], self.goal[0]-position[0])
         force_goal = self.k_att
-        force_goal_x = force_goal * (np.cos(self.theta_start_goal))
-        force_goal_y = force_goal * (np.sin(self.theta_start_goal))
+        force_goal_x = force_goal * (np.cos(theta_goal))
+        force_goal_y = force_goal * (np.sin(theta_goal))
         return round(force_goal_x, 2), round(force_goal_y, 1), round(goal_potential, 1)
     
     
