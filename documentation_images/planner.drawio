@@ -1,4 +1,4 @@
-<mxfile host="app.diagrams.net" modified="2024-03-07T09:43:39.418Z" agent="Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:123.0) Gecko/20100101 Firefox/123.0" etag="9eYkFPHX8uE1P3QX5k1j" version="24.0.1" type="github" pages="4">
+<mxfile host="app.diagrams.net" modified="2024-03-07T09:45:49.826Z" agent="Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:123.0) Gecko/20100101 Firefox/123.0" etag="syMT1Xg7ymnDDo29GNO3" version="24.0.1" type="github" pages="4">
   <diagram id="C5RBs43oDa-KdzZeNtuy" name="plan()">
     <mxGraphModel dx="2189" dy="1935" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="827" pageHeight="1169" math="0" shadow="0">
       <root>
@@ -95,7 +95,7 @@
         <mxCell id="0" />
         <mxCell id="1" parent="0" />
         <mxCell id="RSsxnortNvIZ_sqnA9rF-1" value="Method: attractive_g()" style="swimlane;whiteSpace=wrap;html=1;" parent="1" vertex="1">
-          <mxGeometry x="-810" y="-3600" width="400" height="310" as="geometry" />
+          <mxGeometry x="-810" y="-3600" width="380" height="310" as="geometry" />
         </mxCell>
         <mxCell id="RSsxnortNvIZ_sqnA9rF-3" value="&lt;div&gt;&lt;font color=&quot;#0066cc&quot;&gt;/*Attractive goal is constant*/&lt;/font&gt;&lt;/div&gt;&lt;div&gt;attractive_g = self.k_att&lt;br&gt;&lt;/div&gt;" style="rounded=0;whiteSpace=wrap;html=1;" parent="RSsxnortNvIZ_sqnA9rF-1" vertex="1">
           <mxGeometry x="70" y="40" width="210" height="80" as="geometry" />
@@ -107,7 +107,7 @@
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
         <mxCell id="fUU3xXCS2suQqjS0ujaD-1" value="&lt;div&gt;&lt;font color=&quot;#0066cc&quot;&gt;/*Force is towards goal*/&lt;/font&gt;&lt;/div&gt;&lt;div&gt;theta_g = np.arctan2(self.goal[1]-position[1], self.goal[0]-position[0])&lt;br&gt;&lt;/div&gt;&lt;div&gt;force_g_x = attractive_g*cos(theta_g)&lt;/div&gt;&lt;div&gt;&lt;div&gt;force_g_y = attractive_g*sin(theta_g)&lt;/div&gt;&lt;/div&gt;" style="rounded=0;whiteSpace=wrap;html=1;" parent="RSsxnortNvIZ_sqnA9rF-1" vertex="1">
-          <mxGeometry x="15" y="140" width="365" height="60" as="geometry" />
+          <mxGeometry x="7.5" y="140" width="365" height="60" as="geometry" />
         </mxCell>
         <mxCell id="RSsxnortNvIZ_sqnA9rF-2" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" parent="RSsxnortNvIZ_sqnA9rF-1" source="RSsxnortNvIZ_sqnA9rF-3" target="fUU3xXCS2suQqjS0ujaD-1" edge="1">
           <mxGeometry relative="1" as="geometry">
