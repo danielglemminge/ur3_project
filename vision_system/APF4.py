@@ -158,7 +158,6 @@ class PotentialFieldPlanner4:
             next_position_x = current_position[0] + self.step_size * total_force_x
             next_position_y = current_position[1] + self.step_size * total_force_y
             next_position = np.array([next_position_x, next_position_y])
-            next_position = np.array([next_position_x, next_position_y]) # For precise calculations
 
             if np.linalg.norm(next_position - self.goal) < self.goal_threshold:
                 print('within goal thresh')

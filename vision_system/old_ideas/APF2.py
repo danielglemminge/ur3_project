@@ -151,26 +151,27 @@ if __name__=="__main__":
     # Example usage:
     start = np.array([180, 180])
     goal = np.array([480, 350])
+    
     #obstacles = [np.array([370, 280,20])]
-    obstacles = [np.array([250, 225, 20]), np.array([400, 280, 40])]
+    obstacles = [np.array([250, 230, 20]), np.array([400, 280, 40])]
     # obstacles = [] 
 
     planner = PotentialFieldPlanner2(start, goal, obstacles)
     path = planner.plan()
 
 
-    plt.plot(path[:, 0], path[:, 1], '-o', label='Planned Path')
+    plt.plot(path[:, 0], path[:, 1], '-o',linewidth=1,markersize=3, label='Planned Path')
     plt.plot(start[0], start[1], 'go', label='Start')
     plt.plot(goal[0], goal[1], 'ro', label='Goal')
     straight_path = np.linspace(start, goal,200)
-    plt.plot([start[0], goal[0]], [start[1], goal[1]], 'b--', label='Straight Line')
+    plt.plot([start[0], goal[0]], [start[1], goal[1]], 'g--', label='Straight Line')
     for obstacle in obstacles:
         plt.plot(obstacle[0], obstacle[1], 'ks', label='Obstacle')
-        plt.gca().add_patch(patches.Circle(obstacle[:2],obstacle[2], edgecolor='g', facecolor='none'))
+        plt.gca().add_patch(patches.Circle(obstacle[:2],obstacle[2], edgecolor='r', facecolor='none'))
     plt.legend()
     plt.xlabel('X')
     plt.ylabel('Y')
-    plt.title('Artificial Potential Field Path Planning 2.0')
+    plt.title('Artificial Potential Field Path Planning')
     plt.grid(True)
     plt.xlim(165, 500)
     plt.ylim(180, 360)
