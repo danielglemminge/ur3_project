@@ -297,7 +297,7 @@ def inference(input_source='image'):
         
                 
 
-
+                https://stackoverflow.com/questions/31464345/fitting-a-closed-curve-to-a-set-of-points
                 tck, u = splprep(path_segments.T, u=None, s=0.0) 
                 u_new = np.linspace(u.min(), u.max(), 100)
                 x_new, y_new = splev(u_new, tck, der=0)
