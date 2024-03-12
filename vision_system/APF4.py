@@ -68,7 +68,6 @@ class PotentialFieldPlanner4:
     
     def attractive_centerline(self, position):
         ref_point = closest_on_line(self.start, self.goal, position)
-        print(ref_point)
         phi_refpoint = np.arctan2(ref_point[1]-position[1], ref_point[0]-position[0])
         d_refpoint = np.linalg.norm(position - ref_point)
         if self.obstacles_present:
@@ -117,8 +116,6 @@ class PotentialFieldPlanner4:
                     theta_repulsive = np.arctan2(refpoint[1] - edge_point[1], refpoint[0] - edge_point[0])
                     theta_repulsive2 = np.arctan2(edge_point[1]- refpoint[1] , edge_point[0] - refpoint[0])
                     # print('Theta_start_goal',np.rad2deg(self.theta_start_goal))
-                    print('Theta_repulsive',np.rad2deg(theta_repulsive))
-                    print('Theta_repulsive2',np.rad2deg(theta_repulsive2))
                     # print('Dot product', np.dot(self.theta_start_goal, theta_repulsive))
                     
                 
@@ -145,7 +142,6 @@ class PotentialFieldPlanner4:
         path.append(current_position)
         counter = 1
         for _ in range(self.max_iters):
-            print(counter)
             counter += 1
 
             attractive_goal_x, attractive_goal_y, _ = self.attractive_goal(current_position)
@@ -167,7 +163,6 @@ class PotentialFieldPlanner4:
 
             path.append(next_position)
             current_position = next_position
-            print('CURRENT POSITION: ',current_position)
 
         return np.array(path)
 
