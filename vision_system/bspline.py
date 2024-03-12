@@ -19,15 +19,30 @@ for f in '12345':
 
     rows,cols = img.shape[:2]
     [vx,vy,x,y] = cv.fitLine(cnt, cv.DIST_L2,0,0.01,0.01)
-    print(cv.pointPolygonTest(cnt, (int(x),int(y)), False))
 
-    cv.putText(img, str(vx) + str(vy)+str(x)+str(y), (50,50), cv.FONT_HERSHEY_SIMPLEX, 1,(255,0,0),2,cv.LINE_AA)
+    pt0 = np.array([x-(50*vx), y-(50*vy)])
+    pt1 = np.array([x+(50*vx), y+(50*vy)])
+    print('sssss',pt0, pt1)
+
+    inside_check_pt0 = cv.pointPolygonTest(cnt, (int(pt0[0]), int(pt0[1])), False)
+    inside_check_pt1 = cv.pointPolygonTest(cnt, (int(pt1[0]), int(pt1[1])), False)
+
+    while inside_check_pt0 + inside_check_pt1 != -2: # While both points are inside cnt
+        if inside_check_pt0 >= 0:
+            pt0 = [pt0[0]-(5*vx), pt0[1]-(5*vy)]
+        if inside_check_pt1 >= 0:
+            pt1 = [pt1[0]+(5*vx), pt1[1]+(5*vy)]
+        inside_check_pt0 = cv.pointPolygonTest(cnt, (int(pt0[0]), int(pt0[1])), False)
+        inside_check_pt1 = cv.pointPolygonTest(cnt, (int(pt1[0]), int(pt1[1])), False)   
+
+    cv.circle(img, (int(pt0[0]), int(pt0[1])), 3, (0,0,255),2)
+    cv.circle(img, (int(pt1[0]), int(pt1[1])), 3, (0,255,0),2)
+    
+    
     lefty = int((-x*vy/vx) + y)
     righty = int(((cols-x)*vy/vx)+y)
     cv.line(img,(cols-1,righty),(0,lefty),(0,255,0),2)
-
-    cv.imshow('Img-line', img)
-
+    cv.imshow('lala', img)
     key = cv.waitKey(0)
     cv.destroyAllWindows() 
 
