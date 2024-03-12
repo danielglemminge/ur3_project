@@ -99,7 +99,105 @@ def get_scan_start_stop(im, binary_mask):
     rect = cv2.minAreaRect(contours[0])
     box = cv2.boxPoints(rect)                    
     box = np.int0(box)
+    # print("Box coordinates ([[x1,y1]...[x4,y4]]) = ", box)
+    # cv2.drawContours(img_draw,[box],0,(0,0,255),2)        # uncomment to generate images for documentation
+    # cv2.imshow("bbox", img_draw)                          # uncomment to generate images for documentation
+    # cv2.imwrite(path_results + "bbox_" + filename, img_draw)      # uncomment to generate images for documentation
+
+
+    # Cross: create a cross inside the box.
+    # Average of boxes' coordinates and then converting to int
+    cross = []
+    cross.append( [int(i) for i in  ((box[0]+box[1])/2.0)] )
+    cross.append( [int(i) for i in  ((box[1]+box[2])/2.0)] )
+    cross.append( [int(i) for i in  ((box[2]+box[3])/2.0)] )
+    cross.append( [int(i) for i in  ((box[3]+box[0])/2.0)] )
+    # Draw crosses on the image
+    # cv2.line(img_draw,cross[0], cross[2],(255,255,0),3)       # uncomment to generate images for documentation
+    # cv2.line(img_draw,cross[1], cross[3],(0,255,255),3)       # uncomment to generate images for documentation
+    # cv2.imshow("cross", img_draw)       # uncomment to generate images for documentation
+    # cv2.imwrite(path_results + "cross_" + filename, img_draw)       # uncomment to generate images for documentation
+
+    # Generate a belly line by comparing the l2 norm of the cross's height and width.
+    d1 = np.linalg.norm([cross[0], cross[2]])
+    d2 = np.linalg.norm([cross[1], cross[3]])
+    belly_line = [cross[0], cross[2]] if (d1 >= d2) else [cross[1], cross[3]]    
+
+    # Note order of content ! belly_line = [[x1,y1],[x2,y2]]
+    # print("Belly_line[[x1,y1],[x2,y2]] = ", belly_line)    
+    # angle = np.arctan2(y,x), get x and y coordinates.    
+    x = belly_line[0][0] - belly_line[1][0]
+    y = belly_line[0][1] - belly_line[1][1]
+    theta = np.arctan2(y,x)
+    #print("Theta(rads) = ", theta," Theta(deg) = ", theta * 180/np.pi)
+
+    # theta = abs(theta)
+
+    # Use the length of the belly_line to determine the offset
+    belly_norm = np.linalg.norm(belly_line)
+    # print("belly_line length = ", belly_norm)
+    offset = belly_norm/30
+
+    # Create two points that are +90 and -90 to the belly line. 
+    x1,y1 = int(offset * np.cos(theta - np.pi/2)), int(offset * np.sin(theta - np.pi/2))
+    x2,y2 = int(offset * np.cos(theta + np.pi/2)), int(offset * np.sin(theta + np.pi/2))
+
+    sum1 = 0
+    no_of_pts = 100
+    line_1 = np.array([ belly_line[0] + np.array([x1,y1]), belly_line[1] + np.array([x1,y1]) ])
+    line_2 = np.array([ belly_line[0] + np.array([x2,y2]), belly_line[1] + np.array([x2,y2]) ])
+    # Draw the offset lines.
+    # cv2.line(img_draw,line_1[0], line_1[1],(127,127,0),3)       # uncomment to generate images for documentation
+    # cv2.line(img_draw,line_2[0], line_2[1],(0,127,127),3)       # uncomment to generate images for documentation
+    # cv2.imshow("offset lines", img_draw)       # uncomment to generate images for documentation
+    # cv2.imwrite(path_results + "offset_lines_" + filename, img_draw)       # uncomment to generate images for documentation
+
+    line_1_inter = np.linspace(line_1[0], line_1[1], no_of_pts)
+    line_2_inter = np.linspace(line_2[0], line_2[1], no_of_pts)   
     
+    # Cal sum of intensity along line_1 only on R channel of input image.
+    # Note: cv2.line uses the point as [x,y], eg: cv2.line(im,[x1,y1],[x2,y2],color,thickness)
+    # However the image coordinates are flipped ! ie: img[y][x]
+    for p in line_1_inter:
+        # points in the interpolated array are in the form [[x1,y1]...[xn,yn]]
+        # [x,y] need to thresholed to [1920-1,1080-1] else the index will exceed bounds.
+        x = min(int(p[0]), width-1)
+        y = min(int(p[1]), height-1)
+        # x = int(p[0])
+        # y = int(p[1])
+        sum1 = sum1 + img[y,x,2]    # sum = sum + values in Red Channel of img
+    # print("LINE_1 : sum1 = ", sum1)
+
+    sum2 = 0
+    # Cal sum of intensity along line_2 
+    for p in line_2_inter:
+        # points in the interpolated array are [[x1,y1]...[xn,yn]]
+        # [x,y] need to thresholed to [1920-1,1080-1] else the index will exceed bounds.
+        x = min(int(p[0]), width-1)
+        y = min(int(p[1]), height-1)
+        # x = int(p[0])
+        # y = int(p[1])
+        sum2 = sum2 + img[y,x,2]    # sum = sum + values in Red Channel of img
+    # print("LINE_2 : sum2 = ", sum2)
+
+    # # Decide which line to choose as scan line and return 
+    # temp = line_1 if(sum1 >= sum2) else line_2   
+    scan_line = line_1 if(sum1 >= sum2) else line_2
+
+
+
+    # Decide in image space to stop the points from flipping around.
+    # we find max in X between pt0 and pt1, then return the points accordingly, not need to swap.
+    pt0 = np.array([ scan_line[0][0], scan_line[0][1] ])      # [x,y]
+    pt1 = np.array([ scan_line[1][0], scan_line[1][1] ])      # [x,y]  
+    # print("pt0", pt0[0], pt0[1])
+    # print("pt1", pt1[0], pt1[1])
+
+    # Sometimes the calculated scan and belly lines will have -ve coordinates because we use trig functions.
+    # We need to threshold these to the image resolution. 
+    # Opencv automatiically floors or thresholds -ves to 0 and values exceeding the image size are limited to max width or height.
+    pt0 = limit_pt(pt0, width, height)
+    pt1 = limit_pt(pt1, width, height)
 
 
 
