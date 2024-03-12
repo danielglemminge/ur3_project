@@ -272,7 +272,8 @@ def inference(input_source='image'):
         if np.any(belly_mask) != None:
 
             im_start_stop, pt0, pt1 = get_scan_start_stop(raw_image, belly_mask)
-            print('p0, p1:',pt0, pt1)
+            print('type:',type(pt0[0]))
+            print('pt0[0]:',pt0[0])
             
 
             if np.any(melanin_mask) != None:
