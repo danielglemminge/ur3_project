@@ -54,12 +54,7 @@ def get_scan_start_stop(im, binary_mask):
     img_draw = copy.deepcopy(im)
 
     height,width = binary_mask.shape[:2]
-    
-    
-    #horizontal = np.concatenate((image, image_draw,binary_mask), axis=1)
-    # cv2.imshow('bonary_mask',binary_mask)
   
-
     # find contour
     contours, _ = cv2.findContours(binary_mask,cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
     print('Number of contours: ', len(contours))
@@ -95,40 +90,78 @@ def get_scan_start_stop(im, binary_mask):
         # cv2.imshow("joined contours", cv2.resize(temp,(int(width/factor),int(height/factor)), cv2.INTER_LINEAR))      # uncomment to generate images for documentation
         # cv2.imwrite(path_results + "contours_" + filename, cv2.resize(temp,(int(width/factor),int(height/factor)), cv2.INTER_LINEAR))     # uncomment to generate images for documentation
 
-
     cnt = contours[0]
     M = cv2.moments(cnt)
 
+    # Fitting line with OpenCV function
     rows,cols = img.shape[:2]
     [vx,vy,x,y] = cv2.fitLine(cnt, cv2.DIST_L2,0,0.01,0.01)
 
+    # Creating two points on the fitted line (inside contour)
+    # The fitted line returned one point and an incline
     pt0 = [x-(50*vx), y-(50*vy)]
     pt1 = [x+(50*vx), y+(50*vy)]
 
-
+    # Function that checks whether a point is inside, on the edge, or outside a contour
+    # Inside=1, edge=0, outside=-1
     inside_check_pt0 = cv2.pointPolygonTest(cnt, (int(pt0[0]), int(pt0[1])), False)
     inside_check_pt1 = cv2.pointPolygonTest(cnt, (int(pt1[0]), int(pt1[1])), False)
 
+    # Moving points to contour edge
     while inside_check_pt0 + inside_check_pt1 != -2: # While both points are inside cnt
-        if inside_check_pt0 >= 0:
-            pt0 = [pt0[0]-(5*vx), pt0[1]-(5*vy)]
+        if inside_check_pt0 >= 0: 
+            pt0 = [pt0[0]-(5*vx), pt0[1]-(5*vy)] # Move point if still inside
         if inside_check_pt1 >= 0:
-            pt1 = [pt1[0]+(5*vx), pt1[1]+(5*vy)]
+            pt1 = [pt1[0]+(5*vx), pt1[1]+(5*vy)] # Move point if still inside
+        
+        # After moving, check if still inside
         inside_check_pt0 = cv2.pointPolygonTest(cnt, (int(pt0[0]), int(pt0[1])), False)
-        inside_check_pt1 = cv2.pointPolygonTest(cnt, (int(pt1[0]), int(pt1[1])), False)   
+        inside_check_pt1 = cv2.pointPolygonTest(cnt, (int(pt1[0]), int(pt1[1])), False)
 
-    cv2.circle(img, (int(pt0[0]), int(pt0[1])), 3, (0,0,255),2)
-    cv2.circle(img, (int(pt1[0]), int(pt1[1])), 3, (0,255,0),2)
-    cv2.imshow('lala', img_draw)
+    # cv2.circle(img_draw, (int(pt0[0]), int(pt0[1])), 3, (0,0,255),2)
+    # cv2.circle(img_draw, (int(pt1[0]), int(pt1[1])), 3, (0,255,0),2)
+    # cv2.imshow('pt0 and pt1', img_draw)
 
+    # Converting to np.array()
     pt0 = np.array([int(pt0[0]),int(pt0[1])])
     pt1 = np.array([int(pt1[0]),int(pt1[1])])
 
-    
+    #Creating recomended offset, and finding incline of scan line
+    offset_d = np.linalg.norm(pt1-pt0)/30
+    theta = np.arctan2(pt1[1] - pt0[1], pt1[0] - pt0[0])
 
-    lefty = int((-x*vy/vx) + y)
-    righty = int(((cols-x)*vy/vx)+y)
-    cv2.line(img,(cols-1,righty),(0,lefty),(0,255,0),2)
+    x1,y1 = int(offset_d * np.cos(theta - np.pi/2)), int(offset_d * np.sin(theta - np.pi/2))
+    x2,y2 = int(offset_d * np.cos(theta + np.pi/2)), int(offset_d * np.sin(theta + np.pi/2))
+
+    line_1_inter = np.linspace(pt0 + np.array([x1,y1]), pt1 + np.array([x1,y1]), 10)
+    line_2_inter = np.linspace(pt0 + np.array([x2,y2]), pt1 + np.array([x2,y2]), 10)
+    
+    # for pt in line_1_inter:
+    #     cv2.circle(img_draw, (int(pt[0]), int(pt[1])) , 1, (0,0,255),2)
+    # cv2.imshow('ss', img_draw)
+
+    line_1_sum = 0
+    line_2_sum = 0
+
+    
+    for pt_line_1, pt_line_2 in zip(line_1_inter, line_2_inter):
+        # points in the interpolated array are in the form [[x1,y1]...[xn,yn]]
+        # [x,y] need to thresholed to [1920-1,1080-1] else the index will exceed bounds.
+
+        line_1_x = min(int(pt_line_1[0]), width-1)
+        line_1_y = min(int(pt_line_1[1]), width-1)
+        line_2_x = min(int(pt_line_2[0]), width-1)
+        line_2_y = min(int(pt_line_2[1]), width-1)
+
+        line_1_sum += img[line_1_y, line_1_x, 2] # sum = sum + values in Red Channel of img
+        line_2_sum += img[line_2_y, line_2_x, 2] # sum = sum + values in Red Channel of img
+
+    if line_1_sum > line_2_sum:
+        pt0 = pt0 + np.array([x1,y1])
+        pt1 = pt1 + np.array([x1,y1])
+    else:
+        pt0 = pt0 + np.array([x2,y2])
+        pt1 = pt1 + np.array([x2,y2])
 
 
     return img, pt0, pt1
@@ -163,8 +196,8 @@ def get_black_spot_coord(im, black_spot_mask):
 
 def get_binary_masks(image):
     print('Trying to get binary mask')
-    belly_mask = cv2.imread(path_to_input+'images_michael/binary_mask_f2.jpg') # Read
-    melanin_mask = cv2.imread(path_to_input+'images_michael/melanin_mask_f2.jpg') # Read
+    belly_mask = cv2.imread(path_to_input+'images_michael/binary_mask_f1.jpg') # Read
+    melanin_mask = cv2.imread(path_to_input+'images_michael/melanin_mask_f1.jpg') # Read
 
     belly_mask = cv2.cvtColor(belly_mask, cv2.COLOR_BGR2GRAY) # Grayscale
     melanin_mask = cv2.cvtColor(melanin_mask, cv2.COLOR_BGR2GRAY) # Grayscale
@@ -182,7 +215,7 @@ def inference(input_source='image'):
 
     if input_source == 'image':
         # Read the image input for further processing
-        raw_image = cv2.imread(path_to_input + 'images_michael/input_f2.jpg')
+        raw_image = cv2.imread(path_to_input + 'images_michael/input_f1.jpg')
         raw_image = cv2.resize(raw_image, (0, 0), fx = 0.5, fy = 0.5)
         im_draw = copy.deepcopy(raw_image)
 
