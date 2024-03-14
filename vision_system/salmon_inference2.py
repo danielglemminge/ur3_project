@@ -97,10 +97,23 @@ def get_scan_start_stop(im, binary_mask):
     rows,cols = img.shape[:2]
     [vx,vy,x,y] = cv2.fitLine(cnt, cv2.DIST_L2,0,0.01,0.01)
 
+    lefty = int((-x*vy/vx) + y)
+    righty = int(((img_draw.shape[1]-x)*vy/vx)+y)
+    cv2.line(img_draw,(img.shape[1]-1,righty),(0,lefty),(0,0,255),2)
+    cv2.drawContours(img_draw, contours, -1, (0,255,0),2)
+    
+
     # Creating two points on the fitted line (inside contour)
     # The fitted line returned one point and an incline
     pt0 = [x-(50*vx), y-(50*vy)]
     pt1 = [x+(50*vx), y+(50*vy)]
+
+    # cv2.circle(img_draw, (int(pt0[0]),int(pt0[1])), 3, (0,255,255),5)
+    # cv2.circle(img_draw, (int(pt1[0]),int(pt1[1])), 3, (255,0,255),5)
+
+    
+
+
 
     # Function that checks whether a point is inside, on the edge, or outside a contour
     # Inside=1, edge=0, outside=-1
@@ -125,6 +138,10 @@ def get_scan_start_stop(im, binary_mask):
     # Converting to np.array()
     pt0 = np.array([int(pt0[0]),int(pt0[1])])
     pt1 = np.array([int(pt1[0]),int(pt1[1])])
+
+    # cv2.circle(img_draw, (int(pt0[0]),int(pt0[1])), 3, (0,255,255),5)
+    # cv2.circle(img_draw, (int(pt1[0]),int(pt1[1])), 3, (255,0,255),5)
+    
 
     #Creating recomended offset, and finding incline of scan line
     offset_d = np.linalg.norm(pt1-pt0)/30
@@ -162,6 +179,11 @@ def get_scan_start_stop(im, binary_mask):
     else:
         pt0 = pt0 + np.array([x2,y2])
         pt1 = pt1 + np.array([x2,y2])
+
+    # cv2.circle(img_draw, (int(pt0[0]),int(pt0[1])), 3, (0,255,255),5)
+    # cv2.circle(img_draw, (int(pt1[0]),int(pt1[1])), 3, (255,0,255),5)
+    cv2.imshow('img',img_draw)
+
 
 
     return img, pt0, pt1
