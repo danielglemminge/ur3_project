@@ -218,8 +218,8 @@ def get_black_spot_coord(im, black_spot_mask):
 
 def get_binary_masks(image):
     print('Trying to get binary mask')
-    belly_mask = cv2.imread(path_to_input+'images_michael/binary_mask_f1.jpg') # Read
-    melanin_mask = cv2.imread(path_to_input+'images_michael/melanin_mask_f1.jpg') # Read
+    belly_mask = cv2.imread(path_to_input+'images_michael/binary_mask_f3.jpg') # Read
+    melanin_mask = cv2.imread(path_to_input+'images_michael/melanin_mask_f3.jpg') # Read
 
     belly_mask = cv2.cvtColor(belly_mask, cv2.COLOR_BGR2GRAY) # Grayscale
     melanin_mask = cv2.cvtColor(melanin_mask, cv2.COLOR_BGR2GRAY) # Grayscale
@@ -237,7 +237,7 @@ def inference(input_source='image'):
 
     if input_source == 'image':
         # Read the image input for further processing
-        raw_image = cv2.imread(path_to_input + 'images_michael/input_f1.jpg')
+        raw_image = cv2.imread(path_to_input + 'images_michael/input_f3.jpg')
         raw_image = cv2.resize(raw_image, (0, 0), fx = 0.5, fy = 0.5)
         im_draw = copy.deepcopy(raw_image)
 
@@ -253,12 +253,11 @@ def inference(input_source='image'):
             if np.any(melanin_mask) != None:
                 im_black_spot, hull_list, mass_center_list = get_black_spot_coord(raw_image, melanin_mask)
 
-                cv2.circle(im_black_spot, (pt0[0], pt0[1]), 0, (0,0,255),5)
-                cv2.circle(im_black_spot, (int(pt1[0]), int(pt1[1])), 0, (0,255,0),5)
-                cv2.drawContours(im_black_spot, hull_list, -1, (0,0,255), 1)
+                
+                cv2.drawContours(im_black_spot, hull_list, -1, (15,15,15), cv2.FILLED)
                 #cv2.imshow('im_start_stop', im_start_stop)
 
-                hull_list = scale_contour(hull_list, 1.5) #scaling contours
+                hull_list = scale_contour(hull_list, 2) #scaling contours
                 
                 planner = PotentialFieldPlanner4(pt0, pt1, hull_list, mass_center_list)
 
@@ -279,7 +278,11 @@ def inference(input_source='image'):
                 #     cv2.circle(im_black_spot, (int(coord[0]), int(coord[1])), 0, (0,255,0),2)
                 
                 for x,y in zip(x_new, y_new):
-                    cv2.circle(im_black_spot, (int(x), int(y)), 0, (0,255,0),2)
+                    cv2.circle(im_black_spot, (int(x), int(y)), 1, (0,255,0),4)
+                    
+
+                cv2.circle(im_black_spot, (pt0[0], pt0[1]), 0, (0,255,0),5)
+                cv2.circle(im_black_spot, (int(pt1[0]), int(pt1[1])), 0, (0,0,255),5)
 
                 
                                 
