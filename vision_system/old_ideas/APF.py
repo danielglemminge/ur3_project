@@ -3,8 +3,9 @@ import matplotlib.pyplot as plt
 import copy
 from matplotlib import patches
 
+
 class PotentialFieldPlanner:
-    def __init__(self, start, goal, obstacles, k_att=1, k_rep=80, step_size=5, max_iters=100, field_stretch = 20):
+    def __init__(self, start, goal, obstacles, k_att=1, k_rep=1500, step_size=1, max_iters=1000, field_stretch = 20):
         self.start = start
         self.goal = goal
         self.obstacles = obstacles
@@ -16,8 +17,8 @@ class PotentialFieldPlanner:
 
     def attractive_potential(self, position):
         theta_goal = np.arctan2(self.goal[1]-position[1], self.goal[0]-position[0])
-        # attractive_potential_x = self.k_att * (np.linalg.norm(self.start - self.goal))*np.cos(theta_goal)
-        # attractive_potential_y = self.k_att * (np.linalg.norm(self.start - self.goal))*np.sin(theta_goal)
+        # attractive_potential_x = self.k_att * 0.009*(np.linalg.norm(self.start - self.goal))*np.cos(theta_goal)
+        # attractive_potential_y = self.k_att * 0.009*(np.linalg.norm(self.start - self.goal))*np.sin(theta_goal)
         attractive_potential_x = self.k_att * np.cos(theta_goal)
         attractive_potential_y = self.k_att * np.sin(theta_goal)
         return attractive_potential_x, attractive_potential_y
@@ -49,8 +50,8 @@ class PotentialFieldPlanner:
 
             attractive_force_x, attractive_force_y = self.attractive_potential(current_position)
             repulsive_force_x, repulsive_force_y = self.repulsive_potential(current_position)
-            # print('att_x_y:', attractive_force_x, attractive_force_y)
-            print('rep_x_y:', repulsive_force_x, repulsive_force_y)
+            print('att_x_y:', attractive_force_x, attractive_force_y)
+            # print('rep_x_y:', repulsive_force_x, repulsive_force_y)
             total_force_x = attractive_force_x - repulsive_force_x
             total_force_y = attractive_force_y - repulsive_force_y
 
@@ -76,30 +77,35 @@ class PotentialFieldPlanner:
 if __name__=="__main__":
         
     # Example usage:
-    start = np.array([180, 275])
+    start = np.array([180, 225])
     goal = np.array([480, 275])
     #obstacles = [np.array([370, 280,20])]
-    obstacles = [np.array([300, 270, 10])]
+    obstacles = [np.array([300, 240, 10])]
+    # obstacles = [np.array([230, 230, 10]), np.array([430,260,10])]
     # obstacles = []
-    #obstacles = [np.array([300, 230,20]), np.array([300, 250, 20]), np.array([300, 270, 20])] # wall
+    # obstacles = [np.array([300, 230,20]), np.array([300, 250, 20]), np.array([300, 270, 20])] # wall
 
     planner = PotentialFieldPlanner(start, goal, obstacles)
     path = planner.plan()
 
 
+
     plt.plot(path[:, 0], path[:, 1], '-o',linewidth=1,markersize=3, label='Planned Path')
     plt.plot(start[0], start[1], 'go', label='Start')
-    plt.plot(goal[0], goal[1], 'ro', label='Goal')
+    plt.plot(goal[0], goal[1], 'y*',markersize= 10, label='Goal')
     straight_path = np.linspace(start, goal,200)
     plt.plot([start[0], goal[0]], [start[1], goal[1]], 'g--', label='Straight Line')
     for obstacle in obstacles:
-        plt.plot(obstacle[0], obstacle[1], 'ks', label='Obstacle')
-        plt.gca().add_patch(patches.Circle(obstacle[:2],obstacle[2], edgecolor='r', facecolor='none'))
-        plt.gca().add_patch(patches.Circle(obstacle[:2],obstacle[2]+planner.field_stretch, edgecolor='r', facecolor='none'))
+        plt.plot(obstacle[0], obstacle[1], 'ko', label='Obstacle')
+        plt.gca().add_patch(patches.Circle(obstacle[:2],obstacle[2], edgecolor='black', facecolor='black'))
+        plt.gca().add_patch(patches.Circle(obstacle[:2],obstacle[2]+planner.field_stretch, edgecolor='r', facecolor='none', label='Range of Influence'))
     plt.legend()
+
+    t=' y='+str(5)+'x$^{'+str(6)+'}$\n r$^{2}$=0.95'
+    plt.text(170,340,t)
     plt.xlabel('X')
     plt.ylabel('Y')
-    plt.title('Artificial Potential Field Path Planning')
+    plt.title('Standard APF Planner')
     plt.grid(True)
     plt.xlim(165, 500)
     plt.ylim(170, 370)
