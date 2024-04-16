@@ -5,7 +5,7 @@ from matplotlib import patches
 
 
 class PotentialFieldPlanner:
-    def __init__(self, start, goal, obstacles, k_att=1, k_rep=1500, step_size=1, max_iters=1000, field_stretch = 20):
+    def __init__(self, start, goal, obstacles, k_att=1, k_rep=1500, step_size=1, max_iters=500, field_stretch = 20):
         self.start = start
         self.goal = goal
         self.obstacles = obstacles
@@ -46,7 +46,8 @@ class PotentialFieldPlanner:
         path = []
         path.append(current_position)
 
-        for _ in range(self.max_iters):
+        for i in range(self.max_iters):
+            print(i)
 
             attractive_force_x, attractive_force_y = self.attractive_potential(current_position)
             repulsive_force_x, repulsive_force_y = self.repulsive_potential(current_position)
@@ -94,19 +95,20 @@ if __name__=="__main__":
     plt.plot(start[0], start[1], 'go', label='Start')
     plt.plot(goal[0], goal[1], 'y*',markersize= 10, label='Goal')
     straight_path = np.linspace(start, goal,200)
-    plt.plot([start[0], goal[0]], [start[1], goal[1]], 'g--', label='Straight Line')
+    plt.plot([start[0], goal[0]], [start[1], goal[1]], 'g--', label='Straight (Desired) Path')
+    plt.plot([1000,1000], [1000,1000], 'r', label='Range of Influence')
     for obstacle in obstacles:
         plt.plot(obstacle[0], obstacle[1], 'ko', label='Obstacle')
         plt.gca().add_patch(patches.Circle(obstacle[:2],obstacle[2], edgecolor='black', facecolor='black'))
-        plt.gca().add_patch(patches.Circle(obstacle[:2],obstacle[2]+planner.field_stretch, edgecolor='r', facecolor='none', label='Range of Influence'))
+        plt.gca().add_patch(patches.Circle(obstacle[:2],obstacle[2]+planner.field_stretch, edgecolor='r', facecolor='none'))
     plt.legend()
 
-    t=' y='+str(5)+'x$^{'+str(6)+'}$\n r$^{2}$=0.95'
-    plt.text(170,340,t)
+    t=' $k_{a}=1$''\n $k_{r}= 1500$''\n $\eta_{0}= 20$'
+    plt.text(165,340,t)
     plt.xlabel('X')
     plt.ylabel('Y')
     plt.title('Standard APF Planner')
-    plt.grid(True)
+    plt.grid(False)
     plt.xlim(165, 500)
     plt.ylim(170, 370)
     plt.show()
