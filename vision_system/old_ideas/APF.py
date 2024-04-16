@@ -2,10 +2,11 @@ import numpy as np
 import matplotlib.pyplot as plt
 import copy
 from matplotlib import patches
+import plottools
 
 
 class PotentialFieldPlanner:
-    def __init__(self, start, goal, obstacles, k_att=1, k_rep=1500, step_size=1, max_iters=500, field_stretch = 20):
+    def __init__(self, start, goal, obstacles, k_att=1, k_rep=1500, step_size=1, max_iters=1500, field_stretch = 20):
         self.start = start
         self.goal = goal
         self.obstacles = obstacles
@@ -84,7 +85,7 @@ if __name__=="__main__":
     obstacles = [np.array([300, 240, 10])]
     # obstacles = [np.array([230, 230, 10]), np.array([430,260,10])]
     # obstacles = []
-    # obstacles = [np.array([300, 230,20]), np.array([300, 250, 20]), np.array([300, 270, 20])] # wall
+    # obstacles = [np.array([300, 230,20]), np.array([300, 250, 20])] # wall
 
     planner = PotentialFieldPlanner(start, goal, obstacles)
     path = planner.plan()
