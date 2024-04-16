@@ -4,7 +4,7 @@ import copy
 from matplotlib import patches
 
 class PotentialFieldPlanner:
-    def __init__(self, start, goal, obstacles, k_att=1, k_rep=80, step_size=1, max_iters=100):
+    def __init__(self, start, goal, obstacles, k_att=1, k_rep=80, step_size=5, max_iters=100, field_stretch = 20):
         self.start = start
         self.goal = goal
         self.obstacles = obstacles
@@ -12,6 +12,7 @@ class PotentialFieldPlanner:
         self.k_rep = k_rep
         self.step_size = step_size
         self.max_iters = max_iters
+        self.field_stretch = field_stretch
 
     def attractive_potential(self, position):
         theta_goal = np.arctan2(self.goal[1]-position[1], self.goal[0]-position[0])
@@ -25,15 +26,17 @@ class PotentialFieldPlanner:
         repulsive_force_x = 0
         repulsive_force_y = 0
         for obstacle in self.obstacles:
-            radius = obstacle[2]
-            distance = np.linalg.norm(position - obstacle[:2]) 
-            if distance < radius:
+            obs_radius = obstacle[2]
+            distance = np.linalg.norm(position - obstacle[:2])
+            eta_0 = obs_radius + self.field_stretch
+            if distance < eta_0:
+                print('inside')
                 theta_obstacle = np.arctan2(obstacle[1]-position[1], obstacle[0]-position[0])
-                # repulsive_force_x += self.k_rep * (radius**2/distance**2)*np.cos(theta_obstacle)
-                # repulsive_force_y += self.k_rep * (radius**2/distance**2)*np.sin(theta_obstacle)
-                repulsive_force_x += self.k_rep/(distance-20)**2 * ((1/distance-20)-(1/radius-20))*np.cos(theta_obstacle)
-                repulsive_force_y += self.k_rep/(distance-20)**2 * ((1/distance-20)-(1/radius-20))*np.sin(theta_obstacle)
-        
+                # repulsive_force_x += self.k_rep/(distance-20)**2 * ((1/distance-20)-(1/radius-20))*np.cos(theta_obstacle)
+                # repulsive_force_y += self.k_rep/(distance-20)**2 * ((1/distance-20)-(1/radius-20))*np.sin(theta_obstacle)
+                repulsive_force_x += (self.k_rep/(distance-obs_radius)**2) * ((1/(distance-obs_radius))-(1/(eta_0)))*np.cos(theta_obstacle)
+                repulsive_force_y += (self.k_rep/(distance-obs_radius)**2) * ((1/(distance-obs_radius))-(1/(eta_0)))*np.sin(theta_obstacle)
+                print(repulsive_force_y)
         return repulsive_force_x, repulsive_force_y
 
     def plan(self):
@@ -47,7 +50,7 @@ class PotentialFieldPlanner:
             attractive_force_x, attractive_force_y = self.attractive_potential(current_position)
             repulsive_force_x, repulsive_force_y = self.repulsive_potential(current_position)
             # print('att_x_y:', attractive_force_x, attractive_force_y)
-            # print('rep_x_y:', repulsive_force_x, repulsive_force_y)
+            print('rep_x_y:', repulsive_force_x, repulsive_force_y)
             total_force_x = attractive_force_x - repulsive_force_x
             total_force_y = attractive_force_y - repulsive_force_y
 
@@ -76,8 +79,8 @@ if __name__=="__main__":
     start = np.array([180, 275])
     goal = np.array([480, 275])
     #obstacles = [np.array([370, 280,20])]
-    # obstacles = [np.array([300, 265, 40])]
-    obstacles = []
+    obstacles = [np.array([300, 270, 10])]
+    # obstacles = []
     #obstacles = [np.array([300, 230,20]), np.array([300, 250, 20]), np.array([300, 270, 20])] # wall
 
     planner = PotentialFieldPlanner(start, goal, obstacles)
@@ -92,6 +95,7 @@ if __name__=="__main__":
     for obstacle in obstacles:
         plt.plot(obstacle[0], obstacle[1], 'ks', label='Obstacle')
         plt.gca().add_patch(patches.Circle(obstacle[:2],obstacle[2], edgecolor='r', facecolor='none'))
+        plt.gca().add_patch(patches.Circle(obstacle[:2],obstacle[2]+planner.field_stretch, edgecolor='r', facecolor='none'))
     plt.legend()
     plt.xlabel('X')
     plt.ylabel('Y')
