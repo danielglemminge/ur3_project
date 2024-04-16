@@ -4,7 +4,7 @@ import copy
 from matplotlib import patches
 
 class PotentialFieldPlanner:
-    def __init__(self, start, goal, obstacles, k_att=1, k_rep=80, step_size=1, max_iters=350):
+    def __init__(self, start, goal, obstacles, k_att=1, k_rep=80, step_size=1, max_iters=100):
         self.start = start
         self.goal = goal
         self.obstacles = obstacles
@@ -46,19 +46,19 @@ class PotentialFieldPlanner:
 
             attractive_force_x, attractive_force_y = self.attractive_potential(current_position)
             repulsive_force_x, repulsive_force_y = self.repulsive_potential(current_position)
-
+            # print('att_x_y:', attractive_force_x, attractive_force_y)
+            # print('rep_x_y:', repulsive_force_x, repulsive_force_y)
             total_force_x = attractive_force_x - repulsive_force_x
             total_force_y = attractive_force_y - repulsive_force_y
 
-            
+            # print('current:',current_position)
+            # print('step_size:', self.step_size)
 
             next_position_x = current_position[0] + self.step_size * total_force_x
             next_position_y = current_position[1] + self.step_size * total_force_y
-            
-            print(next_position_x, next_position_y)
+            # print('next pos:', next_position_x, next_position_y)
 
-            next_position = np.array([int(next_position_x), int(next_position_y)])
-
+            next_position = np.array([next_position_x, next_position_y])
 
             if np.linalg.norm(next_position - self.goal) < self.step_size:
                 path.append(self.goal)
@@ -76,8 +76,8 @@ if __name__=="__main__":
     start = np.array([180, 275])
     goal = np.array([480, 275])
     #obstacles = [np.array([370, 280,20])]
-    obstacles = [np.array([300, 265, 40])]
-    #obstacles = []
+    # obstacles = [np.array([300, 265, 40])]
+    obstacles = []
     #obstacles = [np.array([300, 230,20]), np.array([300, 250, 20]), np.array([300, 270, 20])] # wall
 
     planner = PotentialFieldPlanner(start, goal, obstacles)
