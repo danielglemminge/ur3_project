@@ -9,14 +9,20 @@ x_lower = 165
 x_upper = 500
 y_lower = 170
 y_upper = 370
-
 x,y = np.meshgrid(np.arange(x_lower, x_upper, 20), np.arange(y_lower, y_upper, 20))
 fig, ax = plt.subplots()
-q = ax.quiver(x,y,1*np.cos(theta_start_goal),1*np.sin(theta_start_goal))
+q = ax.quiver(x, y, 1*np.cos(theta_start_goal), 1*np.sin(theta_start_goal), pivot='mid')
+xc = ax.quiver(165, 230, 1*np.cos(theta_start_goal), 1*np.sin(theta_start_goal), scale=10, color='red')
+yc = ax.quiver(165, 230, -1*np.sin(theta_start_goal), 1*np.cos(theta_start_goal), scale=10, color='green')
+
 
 plt.plot(start[0], start[1], 'go', label='Start')
 plt.plot(goal[0], goal[1], 'y*',markersize= 10, label='Goal')
 plt.plot([start[0], goal[0]], [start[1], goal[1]], 'g--', label='Straight (Desired) Path')
+plt.title('Attractive Force Vectors')
+plt.legend()
+plt.xlabel('X')
+plt.ylabel('Y')
 plt.show()
 
 
